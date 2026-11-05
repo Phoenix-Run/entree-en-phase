@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrée en Phase • V3.1</title>
-    <meta name="theme-color" content="#1C1F22">
+    <title>Console Neuro-Acoustique d'Entrée en Phase • V2.9.1</title>
+    <meta name="theme-color" content="#060a12">
     <meta name="description" content="Outil expérimental d'exploration sonore par battements binauraux.">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
@@ -13,429 +13,756 @@
     <meta name="apple-mobile-web-app-title" content="Entrée en Phase">
     <style>
         @font-face {
-            font-family: 'DM Sans';
+            font-family: 'Inter';
             font-style: normal;
-            font-weight: 100 1000;
+            font-weight: 100 900;
             font-display: swap;
-            src: url(fonts/DMSans-latin.woff2) format('woff2');
+            src: url(fonts/Inter-latin.woff2) format('woff2');
         }
-        :root {
-            --ground: #1C1F22;
-            --panel: #25292D;
-            --raised: #2E3338;
-            --line: #3A4046;
-            --ink: #E8E9EA;
-            --muted: #A7ADB3;
-            --accent: #9DBFB4;
-            --on-accent: #16191B;
-            --amber: #D9BE8C;
+        @font-face {
+            font-family: 'JetBrains Mono';
+            font-style: normal;
+            font-weight: 100 800;
+            font-display: swap;
+            src: url(fonts/JetBrainsMono-latin.woff2) format('woff2');
         }
-        * { box-sizing: border-box; }
-        html { -webkit-text-size-adjust: 100%; }
+        .page-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; font-size: 12px; }
+        .page-tools a, .page-tools button { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 12px; border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #cbd5e1; text-decoration: none; cursor: pointer; }
+        .page-tools a:hover, .page-tools button:hover { background: #334155; }
+        .page-tools .primary { border-color: rgba(14, 116, 144, 0.7); background: #083344; color: #67e8f9; }
+        #install-help { margin-top: 8px; text-align: right; font-size: 12px; line-height: 1.5; color: #94a3b8; }
         body {
-            margin: 0;
-            background: var(--ground);
-            color: var(--ink);
-            font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            font-size: 15px;
-            line-height: 1.5;
+            background-color: #060a12;
+            color: #e2e8f0;
+            overflow-x: hidden;
         }
-        button, input, select, textarea { font: inherit; color: inherit; }
-        button { cursor: pointer; }
-        button:disabled { cursor: not-allowed; }
-        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        h1, h2, h3, p { margin: 0; }
-        .hidden { display: none !important; }
-        .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-        .page { max-width: 1200px; margin: 0 auto; padding: 28px 40px 40px; }
-        .muted { color: var(--muted); }
-        .label { font-size: 13px; color: var(--muted); }
-        .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-        .panel { background: var(--panel); border-radius: 16px; padding: 20px 22px; min-width: 0; }
-        .panel-title { font-size: 15px; font-weight: 600; }
-        .values { font-variant-numeric: tabular-nums; }
-
-        /* Header */
-        .brand { font-size: 20px; font-weight: 600; line-height: 1.3; }
-        .profile-quick { display: flex; align-items: center; gap: 10px; }
-        .field {
-            min-height: 44px; padding: 0 14px; max-width: 100%;
-            border: 1px solid var(--line); border-radius: 22px;
-            background: var(--ground);
+        /* Custom Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
         }
-        .field-grow { flex: 1; min-width: 0; }
-
-        /* Session area */
-        .session { display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 24px; }
-        .timer { font-size: 88px; font-weight: 500; line-height: 1.08; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
-        .timer.prep { color: var(--amber); }
-        .session-sub { min-height: 22px; color: var(--muted); }
-        .dots { display: flex; gap: 10px; margin-top: 12px; }
-        .dot { width: 12px; height: 12px; border-radius: 6px; background: var(--line); }
-        .dot.on { background: var(--accent); }
-        .session-message { margin-top: 12px; max-width: 460px; color: var(--muted); }
-        .transport { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 18px; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 28px; border-radius: 26px; border: 1px solid transparent; font-size: 16px; font-weight: 600; }
-        .btn svg { width: 18px; height: 18px; fill: currentColor; }
-        .btn-primary { min-width: 220px; background: var(--accent); color: var(--on-accent); }
-        .btn-pause { min-width: 220px; background: var(--line); color: var(--ink); }
-        .btn-stop { background: transparent; border-color: var(--line); color: var(--ink); font-weight: 500; }
-        .btn-stop:disabled { color: var(--muted); opacity: .6; }
-        .session-note { min-height: 22px; margin-top: 10px; color: var(--amber); font-size: 14px; }
-        .session-settings-link { display: none; }
-
-        /* Setup */
-        .section-title { margin: 28px 0 12px; font-size: 15px; font-weight: 500; color: var(--muted); }
-        .horizons { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-        .protocol-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; width: 100%; padding: 18px 20px; text-align: left; background: var(--panel); border: 1px solid var(--panel); border-radius: 16px; }
-        .protocol-card:hover { border-color: var(--line); }
-        .protocol-card.active-protocol { border-color: var(--accent); background: var(--raised); }
-        .horizon-name { display: block; margin: 2px 0 6px; font-size: 18px; font-weight: 600; line-height: 1.3; }
-        .horizon-line { display: block; color: var(--muted); font-size: 14px; }
-        .settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
-        .stepper { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 8px; }
-        .stepper .step:last-child { margin-left: auto; } .step { width: 44px; height: 44px; flex: none; border: 1px solid var(--line); border-radius: 22px; background: transparent; }
-        .stepper input { flex: 1; width: 100%; min-width: 0; max-width: 64px; min-height: 44px; margin-left: auto; border: 0; background: transparent; text-align: center; font-size: 22px; font-weight: 500; appearance: textfield; -moz-appearance: textfield; }
-        .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .reco { flex: none; white-space: nowrap; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 16px; background: transparent; color: var(--muted); font-size: 13px; }
-        .seg-group { display: flex; gap: 8px; margin: 12px 0 8px; }
-        .seg { flex: 1; min-height: 44px; padding: 0 8px; border: 1px solid var(--line); border-radius: 22px; background: transparent; color: var(--muted); white-space: nowrap; }
-        .seg.on { background: var(--line); color: var(--ink); }
-        .switch { position: relative; width: 52px; height: 30px; flex: none; border: 0; border-radius: 15px; background: var(--line); padding: 0; }
-        .switch::before { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 12px; background: var(--muted); }
-        .switch.on { background: var(--accent); }
-        .switch.on::before { left: 25px; background: var(--on-accent); }
-        .ascent-timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
-        .stage { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; color: var(--muted); }
-        .stage.current { border-color: var(--accent); color: var(--ink); }
-        .stage.done { opacity: .6; }
-        .stage-name { font-weight: 600; color: var(--ink); }
-        .page-end { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; margin-top: 22px; }
-        .notice { flex: 1 1 360px; color: var(--muted); font-size: 13px; }
-        .page-links { display: flex; flex-wrap: wrap; gap: 10px; } .link-button { display: inline-flex; align-items: center; color: var(--ink); text-decoration: none; } .btn-quiet { min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 22px; background: transparent; }
-
-        /* Advanced settings */
-        .advanced { display: none; margin-top: 24px; }
-        .advanced-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-        .advanced-grid .wide { grid-column: 1 / -1; }
-        .advanced h2 { font-size: 22px; font-weight: 600; }
-        .big-value { font-size: 20px; font-variant-numeric: tabular-nums; }
-        input[type=range] { width: 100%; height: 28px; margin: 4px 0; accent-color: var(--accent); background: transparent; }
-        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .chip { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 22px; background: transparent; color: var(--muted); }
-        .chip.on, .chip.active-preset, .chip.active-binaural { background: var(--line); color: var(--ink); }
-        .stack { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
-        .slider-line { display: flex; align-items: center; gap: 12px; }
-        .slider-line .label { flex: none; width: 76px; }
-        .slider-line .values { flex: none; min-width: 58px; text-align: right; }
-        .module { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-        .module:last-child { padding-bottom: 0; border-bottom: 0; }
-        .module.active-module-card .module-name { color: var(--accent); }
-        .ramp-track { height: 6px; margin-top: 10px; overflow: hidden; border-radius: 3px; background: var(--line); }
-        .ramp-fill { width: 0; height: 100%; background: var(--accent); }
-        .scope { position: relative; height: 170px; margin-top: 12px; overflow: hidden; border-radius: 12px; background: var(--ground); }
-        .scope canvas { display: block; width: 100%; height: 100%; }
-        body.light-mode .scope { display: none; }
-        .scope-tags { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
-        .tag { padding: 1px 8px; border-radius: 10px; background: var(--raised); color: var(--muted); font-size: 12px; }
-        .readouts { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin-top: 10px; font-size: 13px; color: var(--muted); }
-        .badge { padding: 2px 10px; border-radius: 11px; background: var(--raised); color: var(--muted); font-size: 12px; }
-        .badge.on { color: var(--accent); }
-        .badge.warn { color: var(--amber); }
-        .breath { display: flex; align-items: center; gap: 20px; margin-top: 14px; }
-        .breath-ring { position: relative; display: flex; align-items: center; justify-content: center; width: 96px; height: 96px; flex: none; }
-        #breath-outer-ring { position: absolute; inset: 0; border: 2px solid var(--line); border-radius: 50%; }
-        #breath-circle { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: var(--line); }
-        #breath-timer { font-size: 12px; font-variant-numeric: tabular-nums; }
-        .breath-label { font-weight: 600; }
-        .log { width: 100%; height: 160px; margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--ground); color: var(--muted); font: 13px/1.5 ui-monospace, Consolas, monospace; resize: vertical; }
-        .profile-note { min-height: 20px; margin-top: 8px; color: var(--amber); font-size: 14px; }
-        .file-button { display: inline-flex; align-items: center; cursor: pointer; }
-
-        /* Advanced view: compact session bar, setup hidden */
-        body.advanced-open .advanced { display: block; }
-        body.advanced-open .setup { display: none; }
-        body.advanced-open .session { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 20px; margin-top: 16px; text-align: left; }
-        body.advanced-open .timer { font-size: 40px; }
-        body.advanced-open .dots, body.advanced-open .session-message, body.advanced-open .session-sub { display: none; }
-        body.advanced-open .transport { margin-top: 0; }
-        body.advanced-open .btn { min-height: 48px; }
-        body.advanced-open .session-note { flex-basis: 100%; text-align: center; margin-top: 0; }
-        @media (min-width: 768px) {
-            body.advanced-open .session-bar { position: sticky; top: 0; z-index: 10; margin: 0 -40px; padding: 8px 40px 10px; background: var(--ground); border-bottom: 1px solid var(--line); }
+        input[type=range]::-webkit-slider-runnable-track {
+            background: #1e293b;
+            height: 6px;
+            border-radius: 999px;
+            border: 1px solid #334155;
         }
-
-        /* Light mode: nothing moves except the sound */
-        body.light-mode * { animation: none !important; transition: none !important; }
-
-        @media (max-width: 1000px) {
-            .horizons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .settings, .advanced-grid { grid-template-columns: minmax(0, 1fr); }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px;
+            background-color: #22d3ee;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.7);
+            border: 2px solid #ecfeff;
+            transition: transform 0.15s ease, background-color 0.15s ease;
         }
-        @media (max-width: 767px) {
-            .page { padding: 20px 16px 28px; }
-            .brand { font-size: 18px; }
-            .timer { font-size: 72px; }
-            .horizons { gap: 10px; }
-            .protocol-card { padding: 14px 16px; }
-            .horizon-name { margin-bottom: 0; font-size: 16px; }
-            .horizon-line { display: none; }
-            .ascent-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .btn { min-height: 56px; }
-            .transport { width: 100%; flex-wrap: nowrap; }
-            .btn-primary, .btn-pause { flex: 1; min-width: 0; padding: 0 16px; }
-            .btn-stop { padding: 0 20px; }
-            .profile-quick .label { display: none; }
-            .profile-quick .field { max-width: 170px; }
-            .breath { align-items: flex-start; }
-            /* During a session the phone shows only the essential */
-            body.in-session:not(.show-setup):not(.advanced-open) .setup { display: none; }
-            body.in-session:not(.show-setup):not(.advanced-open) .page { min-height: 100svh; display: flex; flex-direction: column; }
-            body.in-session:not(.show-setup):not(.advanced-open) .session-bar { flex: 1; display: flex; flex-direction: column; } body.in-session:not(.show-setup):not(.advanced-open) .session { flex: 1; justify-content: center; }
-            body.in-session .session-settings-link { display: block; margin: 20px auto 0; }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background-color: #67e8f9;
+        }
+        .amber-slider::-webkit-slider-thumb {
+            background-color: #fbbf24 !important;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.7) !important;
+        }
+        .emerald-slider::-webkit-slider-thumb {
+            background-color: #34d399 !important;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.7) !important;
+        }
+        .purple-slider::-webkit-slider-thumb {
+            background-color: #c084fc !important;
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.7) !important;
+        }
+        body.light-mode .glass-panel {
+            background: rgb(15, 23, 42);
+            backdrop-filter: none;
+        }
+        body.light-mode * {
+            animation: none !important;
+            transition: none !important;
+            box-shadow: none !important;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+        }
+        .active-preset {
+            border-color: #22d3ee !important;
+            background: rgba(8, 145, 178, 0.18) !important;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+        }
+        .active-binaural {
+            border-color: #fbbf24 !important;
+            background: rgba(217, 119, 6, 0.18) !important;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
+        }
+        .active-protocol {
+            border-color: #34d399 !important;
+            background: rgba(16, 185, 129, 0.18) !important;
+            box-shadow: 0 0 22px rgba(52, 211, 153, 0.2);
+        }
+        .active-module-card {
+            border-color: rgba(192, 132, 252, 0.65) !important;
+            background: rgba(88, 28, 135, 0.18) !important;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.14);
+        }
+        .rose-slider::-webkit-slider-thumb {
+            background-color: #fb7185 !important;
+            box-shadow: 0 0 12px rgba(251, 113, 133, 0.7) !important;
         }
     </style>
+    <!-- V2.8.1: Tailwind classes compiled once, so the page needs no script watching it and no network for its layout -->
+    <style>
+*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.visible{visibility:visible}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-2\.5{bottom:0.625rem}.left-3{left:0.75rem}.right-3{right:0.75rem}.top-2\.5{top:0.625rem}.z-30{z-index:30}.col-span-2{grid-column:span 2 / span 2}.mx-auto{margin-left:auto;margin-right:auto}.my-3{margin-top:0.75rem;margin-bottom:0.75rem}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-3\.5{margin-bottom:0.875rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.ml-2{margin-left:0.5rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-1\.5{margin-top:0.375rem}.mt-2{margin-top:0.5rem}.mt-2\.5{margin-top:0.625rem}.mt-3{margin-top:0.75rem}.mt-3\.5{margin-top:0.875rem}.mt-4{margin-top:1rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-10{height:2.5rem}.h-12{height:3rem}.h-2{height:0.5rem}.h-24{height:6rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-52{height:13rem}.h-6{height:1.5rem}.h-full{height:100%}.min-h-\[1rem\]{min-height:1rem}.min-h-screen{min-height:100vh}.w-0{width:0px}.w-10{width:2.5rem}.w-12{width:3rem}.w-16{width:4rem}.w-2{width:0.5rem}.w-24{width:6rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-full{width:100%}.min-w-0{min-width:0px}.min-w-\[170px\]{min-width:170px}.min-w-\[210px\]{min-width:210px}.min-w-\[240px\]{min-width:240px}.max-w-7xl{max-width:80rem}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}.cursor-not-allowed{cursor:not-allowed}.cursor-pointer{cursor:pointer}.resize{resize:both}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.items-baseline{align-items:baseline}.items-stretch{align-items:stretch}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-3\.5{gap:0.875rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-x-3{column-gap:0.75rem}.gap-y-1\.5{row-gap:0.375rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-amber-500\/30{border-color:rgb(245 158 11 / 0.3)}.border-amber-500\/40{border-color:rgb(245 158 11 / 0.4)}.border-cyan-300\/60{border-color:rgb(103 232 249 / 0.6)}.border-cyan-400\/40{border-color:rgb(34 211 238 / 0.4)}.border-cyan-500\/30{border-color:rgb(6 182 212 / 0.3)}.border-cyan-500\/40{border-color:rgb(6 182 212 / 0.4)}.border-cyan-700\/60{border-color:rgb(14 116 144 / 0.6)}.border-cyan-800{--tw-border-opacity:1;border-color:rgb(21 94 117 / var(--tw-border-opacity, 1))}.border-emerald-500\/40{border-color:rgb(16 185 129 / 0.4)}.border-emerald-700\/60{border-color:rgb(4 120 87 / 0.6)}.border-purple-400\/40{border-color:rgb(192 132 252 / 0.4)}.border-purple-500\/30{border-color:rgb(168 85 247 / 0.3)}.border-purple-500\/40{border-color:rgb(168 85 247 / 0.4)}.border-purple-700\/60{border-color:rgb(126 34 206 / 0.6)}.border-rose-500\/40{border-color:rgb(244 63 94 / 0.4)}.border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-700\/70{border-color:rgb(51 65 85 / 0.7)}.border-slate-700\/80{border-color:rgb(51 65 85 / 0.8)}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-slate-800\/80{border-color:rgb(30 41 59 / 0.8)}.border-slate-800\/90{border-color:rgb(30 41 59 / 0.9)}.border-transparent{border-color:transparent}.border-emerald-500\/50{border-color:rgb(16 185 129 / 0.5)}.border-amber-700\/60{border-color:rgb(180 83 9 / 0.6)}.border-emerald-500\/60{border-color:rgb(16 185 129 / 0.6)}.border-rose-500\/60{border-color:rgb(244 63 94 / 0.6)}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.bg-amber-950{--tw-bg-opacity:1;background-color:rgb(69 26 3 / var(--tw-bg-opacity, 1))}.bg-blue-950{--tw-bg-opacity:1;background-color:rgb(23 37 84 / var(--tw-bg-opacity, 1))}.bg-cyan-400{--tw-bg-opacity:1;background-color:rgb(34 211 238 / var(--tw-bg-opacity, 1))}.bg-cyan-500\/10{background-color:rgb(6 182 212 / 0.1)}.bg-cyan-500\/20{background-color:rgb(6 182 212 / 0.2)}.bg-cyan-950{--tw-bg-opacity:1;background-color:rgb(8 51 68 / var(--tw-bg-opacity, 1))}.bg-cyan-950\/90{background-color:rgb(8 51 68 / 0.9)}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153 / var(--tw-bg-opacity, 1))}.bg-emerald-950{--tw-bg-opacity:1;background-color:rgb(2 44 34 / var(--tw-bg-opacity, 1))}.bg-emerald-950\/90{background-color:rgb(2 44 34 / 0.9)}.bg-indigo-950{--tw-bg-opacity:1;background-color:rgb(30 27 75 / var(--tw-bg-opacity, 1))}.bg-purple-500\/20{background-color:rgb(168 85 247 / 0.2)}.bg-purple-950{--tw-bg-opacity:1;background-color:rgb(59 7 100 / var(--tw-bg-opacity, 1))}.bg-purple-950\/25{background-color:rgb(59 7 100 / 0.25)}.bg-purple-950\/90{background-color:rgb(59 7 100 / 0.9)}.bg-rose-950\/90{background-color:rgb(76 5 25 / 0.9)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(11 19 34 / var(--tw-bg-opacity, 1))}.bg-slate-900\/60{background-color:rgb(11 19 34 / 0.6)}.bg-slate-900\/70{background-color:rgb(11 19 34 / 0.7)}.bg-slate-900\/80{background-color:rgb(11 19 34 / 0.8)}.bg-slate-900\/90{background-color:rgb(11 19 34 / 0.9)}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(6 10 18 / var(--tw-bg-opacity, 1))}.bg-slate-950\/60{background-color:rgb(6 10 18 / 0.6)}.bg-slate-950\/70{background-color:rgb(6 10 18 / 0.7)}.bg-slate-950\/90{background-color:rgb(6 10 18 / 0.9)}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-emerald-950\/40{background-color:rgb(2 44 34 / 0.4)}.bg-rose-950\/60{background-color:rgb(76 5 25 / 0.6)}.bg-slate-950\/40{background-color:rgb(6 10 18 / 0.4)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-tr{background-image:linear-gradient(to top right, var(--tw-gradient-stops))}.from-cyan-400{--tw-gradient-from:#22d3ee var(--tw-gradient-from-position);--tw-gradient-to:rgb(34 211 238 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-cyan-500{--tw-gradient-from:#06b6d4 var(--tw-gradient-from-position);--tw-gradient-to:rgb(6 182 212 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-cyan-500\/40{--tw-gradient-from:rgb(6 182 212 / 0.4) var(--tw-gradient-from-position);--tw-gradient-to:rgb(6 182 212 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-amber-400{--tw-gradient-from:#fbbf24 var(--tw-gradient-from-position);--tw-gradient-to:rgb(251 191 36 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-amber-400{--tw-gradient-to:#fbbf24 var(--tw-gradient-to-position)}.to-purple-500\/40{--tw-gradient-to:rgb(168 85 247 / 0.4) var(--tw-gradient-to-position)}.to-teal-500{--tw-gradient-to:#14b8a6 var(--tw-gradient-to-position)}.to-amber-500{--tw-gradient-to:#f59e0b var(--tw-gradient-to-position)}.fill-current{fill:currentColor}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.pb-12{padding-bottom:3rem}.pt-2\.5{padding-top:0.625rem}.pt-3\.5{padding-top:0.875rem}.pt-6{padding-top:1.5rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:JetBrains Mono, monospace}.font-sans{font-family:Inter, sans-serif}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-blue-300{--tw-text-opacity:1;color:rgb(147 197 253 / var(--tw-text-opacity, 1))}.text-cyan-200{--tw-text-opacity:1;color:rgb(165 243 252 / var(--tw-text-opacity, 1))}.text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249 / var(--tw-text-opacity, 1))}.text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.text-purple-200{--tw-text-opacity:1;color:rgb(233 213 255 / var(--tw-text-opacity, 1))}.text-purple-300{--tw-text-opacity:1;color:rgb(216 180 254 / var(--tw-text-opacity, 1))}.text-purple-400{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.text-rose-300{--tw-text-opacity:1;color:rgb(253 164 175 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-950{--tw-text-opacity:1;color:rgb(6 10 18 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-emerald-200{--tw-text-opacity:1;color:rgb(167 243 208 / var(--tw-text-opacity, 1))}.text-rose-200{--tw-text-opacity:1;color:rgb(254 205 211 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.placeholder-slate-500::placeholder{--tw-placeholder-opacity:1;color:rgb(100 116 139 / var(--tw-placeholder-opacity, 1))}.opacity-80{opacity:0.8}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-cyan-500\/20{--tw-shadow-color:rgb(6 182 212 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.shadow-amber-500\/20{--tw-shadow-color:rgb(245 158 11 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.ring{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.blur{--tw-blur:blur(8px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-200{transition-duration:200ms}.duration-300{transition-duration:300ms}.selection\:bg-cyan-500 *::selection{--tw-bg-opacity:1;background-color:rgb(6 182 212 / var(--tw-bg-opacity, 1))}.selection\:text-slate-950 *::selection{--tw-text-opacity:1;color:rgb(6 10 18 / var(--tw-text-opacity, 1))}.selection\:bg-cyan-500::selection{--tw-bg-opacity:1;background-color:rgb(6 182 212 / var(--tw-bg-opacity, 1))}.selection\:text-slate-950::selection{--tw-text-opacity:1;color:rgb(6 10 18 / var(--tw-text-opacity, 1))}.hover\:bg-cyan-500\/30:hover{background-color:rgb(6 182 212 / 0.3)}.hover\:bg-cyan-900:hover{--tw-bg-opacity:1;background-color:rgb(22 78 99 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-900:hover{--tw-bg-opacity:1;background-color:rgb(6 78 59 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-500\/30:hover{background-color:rgb(168 85 247 / 0.3)}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800\/70:hover{background-color:rgb(30 41 59 / 0.7)}.hover\:bg-rose-900\/70:hover{background-color:rgb(136 19 55 / 0.7)}.hover\:from-cyan-400:hover{--tw-gradient-from:#22d3ee var(--tw-gradient-from-position);--tw-gradient-to:rgb(34 211 238 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:from-amber-300:hover{--tw-gradient-from:#fcd34d var(--tw-gradient-from-position);--tw-gradient-to:rgb(252 211 77 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:to-teal-400:hover{--tw-gradient-to:#2dd4bf var(--tw-gradient-to-position)}.hover\:to-amber-400:hover{--tw-gradient-to:#fbbf24 var(--tw-gradient-to-position)}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.focus\:border-cyan-400:focus{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-purple-300{--tw-text-opacity:1;color:rgb(216 180 254 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:col-span-1{grid-column:span 1 / span 1}.sm\:inline{display:inline}.sm\:inline-flex{display:inline-flex}.sm\:flex-none{flex:none}.sm\:flex-grow-0{flex-grow:0}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:grid-cols-5{grid-template-columns:repeat(5, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}.sm\:p-5{padding:1.25rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}}@media (min-width: 768px){.md\:sticky{position:sticky}.md\:top-0{top:0px}.md\:block{display:block}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:col-span-7{grid-column:span 7 / span 7}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.lg\:justify-end{justify-content:flex-end}}
+    </style>
 </head>
-<body>
-<div class="page">
-    <header class="row">
-        <div>
-            <h1 class="brand">Entrée en Phase</h1>
-            <div class="label">Outil expérimental • V3.1</div>
+<body class="min-h-screen font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 pb-12">
+
+    <!-- Top Navigation & Master Status Header -->
+    <header class="md:sticky md:top-0 z-30 glass-panel border-b border-slate-800/80 px-4 py-3 sm:px-6">
+        <div class="max-w-7xl mx-auto space-y-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base sm:text-lg font-semibold tracking-tight text-white">Console Neuro-Acoustique d'Entrée en Phase • V2.9.1</h1>
+                        <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-purple-950 text-purple-300 border border-purple-700/60">
+                            OUTIL EXPÉRIMENTAL
+                        </span>
+                    </div>
+                    <p class="hidden md:block text-xs text-slate-400">Exploration hors du corps, perception à distance, couplage Thêta-Gamma & désengagement vestibulaire</p>
+                </div>
+            </div>
+
+            <!-- Master Transport & Timer -->
+            <div class="flex flex-wrap items-stretch gap-3">
+                <!-- Session Duration -->
+                <div class="flex items-center gap-1 bg-slate-900/90 border border-slate-700/70 rounded-xl px-2 py-1.5 text-sm" role="group" aria-label="Durée de session">
+                    <span class="px-1 font-medium text-slate-300">Durée</span>
+                    <button onclick="nudgeSession(-5)" aria-label="Réduire la session de 5 minutes" class="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 font-mono transition">−5</button>
+                    <input id="session-minutes" type="number" min="10" max="180" step="1" value="30" aria-label="Durée de session en minutes" onchange="setTimerDuration(this.value)" class="w-16 px-1 py-1.5 rounded-lg bg-slate-800 border border-cyan-500/30 text-center font-mono font-medium text-cyan-300 focus:outline-none focus:border-cyan-400">
+                    <span class="text-slate-400">min</span>
+                    <button onclick="nudgeSession(5)" aria-label="Allonger la session de 5 minutes" class="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 font-mono transition">+5</button>
+                </div>
+
+                <!-- V2.5: Optional Settling-In Time Before The Session -->
+                <div class="flex items-center gap-1 bg-slate-900/90 border border-slate-700/70 rounded-xl px-2 py-1.5 text-sm" role="group" aria-label="Sas d'installation">
+                    <span class="px-1 font-medium text-slate-300 whitespace-nowrap">Sas d'installation</span>
+                    <button onclick="setPrepMinutes(0)" id="prep-0" class="prep-btn px-3 py-1.5 rounded-lg bg-slate-800 text-cyan-300 font-medium border border-cyan-500/30 transition">OFF</button>
+                    <button onclick="setPrepMinutes(2)" id="prep-2" class="prep-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white border border-transparent transition whitespace-nowrap">2 min</button>
+                    <button onclick="setPrepMinutes(5)" id="prep-5" class="prep-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white border border-transparent transition whitespace-nowrap">5 min</button>
+                </div>
+
+                <!-- Countdown -->
+                <div class="flex-1 min-w-[210px] flex items-center justify-center bg-slate-950/70 border border-slate-700/70 rounded-xl px-3 py-1.5" role="timer" aria-label="Temps restant">
+                    <span id="timer-display" class="font-mono text-xl text-cyan-400 font-semibold whitespace-nowrap">30:00</span>
+                </div>
+
+                <!-- Master Transport: Play/Pause and Stop are separate -->
+                <div class="flex items-stretch gap-2 flex-grow sm:flex-grow-0">
+                    <button id="master-play-btn" onclick="toggleAudioEngine()" class="flex-1 sm:flex-none flex items-center justify-center gap-2.5 min-w-[170px] px-5 py-2.5 rounded-xl text-sm transition-all duration-200 bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-500/20 active:scale-95">
+                        <svg id="play-icon" class="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg id="pause-icon" class="w-5 h-5 fill-current hidden" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M6 5h4v14H6zM14 5h4v14h-4z"/>
+                        </svg>
+                        <span id="play-btn-text" class="font-semibold whitespace-nowrap">Entrer en Phase</span>
+                    </button>
+                    <button id="stop-session-btn" onclick="stopSession()" disabled class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-700 bg-slate-900 text-slate-500 cursor-not-allowed transition">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M6 6h12v12H6z"/>
+                        </svg>
+                        <span>Arrêter</span>
+                    </button>
+                </div>
+            </div>
         </div>
-        <label class="profile-quick">
-            <span class="label">Profil</span>
-            <select id="quick-profile" class="field" onchange="quickProfileChosen(this)" aria-label="Choisir un profil"></select>
-        </label>
     </header>
 
-    <div class="session-bar">
-        <section class="session" aria-label="Session">
-            <div>
-                <div id="session-title" class="muted">Horizon 1 : Repos éveillé</div>
-                <div id="timer-display" class="timer" role="timer">30:00</div>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+
+        <!-- V2.9.1: install, manual and language -->
+        <div>
+            <div class="page-tools">
+                <button id="install-btn" class="primary" onclick="installApplication()">Installer l'application</button>
+                <a href="manuel.pdf" target="_blank" rel="noopener">Manuel</a>
+                <a href="en/" lang="en" hreflang="en">English</a>
             </div>
-            <div id="session-sub" class="session-sub"></div>
-            <div id="session-dots" class="dots hidden" role="img" aria-label="Horizon en cours">
-                <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <p id="install-help" class="hidden" role="status"></p>
+        </div>
+
+        <!-- Horizon Selection Bar -->
+        <section class="glass-panel rounded-2xl p-4 sm:p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <h2 class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-semibold">Horizons de Phase (Choisissez, puis Entrer en Phase)</h2>
+                </div>
+                <span class="text-xs text-slate-400">Recommandation : Casque stéréo isolant • Masque occultant • Pièce sombre</span>
             </div>
-            <p id="session-message" class="session-message hidden"></p>
-            <div class="transport">
-                <button id="master-play-btn" onclick="toggleAudioEngine()" class="btn btn-primary">
-                    <svg id="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-                    <svg id="pause-icon" class="hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
-                    <span id="play-btn-text">Entrer en Phase</span>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- Horizon 1 -->
+                <button onclick="applyProtocol('focus10', false)" id="proto-focus10" class="protocol-card active-protocol text-left p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800/70 transition-all group">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-mono font-semibold text-emerald-400">HORIZON 1 • REPOS ÉVEILLÉ</span>
+                        <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">100 Hz + θ 4.0 Hz</span>
+                    </div>
+                    <div class="font-semibold text-sm text-white group-hover:text-emerald-300 transition">Corps au Repos, Esprit Présent</div>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Mise en veille somatique + Rampe progressive d'entrée en phase (12 Hz → 4 Hz).</p>
                 </button>
-                <button id="stop-session-btn" onclick="stopSession()" disabled class="btn btn-stop">Arrêter</button>
+
+                <!-- Horizon 2 -->
+                <button onclick="applyProtocol('focus12', false)" id="proto-focus12" class="protocol-card text-left p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800/70 transition-all group">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-mono font-semibold text-cyan-400">HORIZON 2 • PERCEPTION ÉLARGIE</span>
+                        <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">136.1 Hz + θ 5.5 Hz + γ 40 Hz</span>
+                    </div>
+                    <div class="font-semibold text-sm text-white group-hover:text-cyan-300 transition">Expansion Spatiale & Perception à Distance</div>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Active le Pont Thêta-Gamma 40 Hz pour maintenir l'acuité préfrontale et éviter le décrochage.</p>
+                </button>
+
+                <!-- Horizon 3 -->
+                <button onclick="applyProtocol('focus15', false)" id="proto-focus15" class="protocol-card text-left p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800/70 transition-all group">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-mono font-semibold text-amber-400">HORIZON 3 • HORS DU TEMPS</span>
+                        <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">100 Hz + Δ 1.5 Hz</span>
+                    </div>
+                    <div class="font-semibold text-sm text-white group-hover:text-amber-300 transition">Vide Acoustique & Abstraction</div>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Ondes Delta profondes + Pont Gamma subtil. Dissolution des repères spatio-temporels.</p>
+                </button>
+
+                <!-- Horizon 4 -->
+                <button onclick="applyProtocol('focus21', false)" id="proto-focus21" class="protocol-card text-left p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800/70 transition-all group">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-mono font-semibold text-purple-400">HORIZON 4 • LE SEUIL</span>
+                        <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">200 Hz + θ 3.8 Hz + 3D + Iso</span>
+                    </div>
+                    <div class="font-semibold text-sm text-white group-hover:text-purple-300 transition">Frontière Liminale & Exploration hors du corps</div>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Combine Rotation Vestibulaire 3D et Pulsation Isochrone pour déclencher l'état vibratoire.</p>
+                </button>
             </div>
-            <div id="session-note" class="session-note" role="status"></div>
-            <button class="btn-quiet session-settings-link" onclick="toggleSetupDuringSession()">Afficher les réglages</button>
+
+            <!-- V2.2: Optional Horizon Ascent & Session Duration Guidance -->
+            <div class="mt-3.5 pt-3.5 border-t border-slate-800/80 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex-1 min-w-[240px]">
+                        <h3 class="text-xs font-semibold text-white">Ascension progressive (option)</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Enchaîne automatiquement les étapes jusqu'à l'Horizon choisi (1 → 2 → 3 → 4), avec un temps de stabilisation à chacun, réparti selon la durée de session.</p>
+                    </div>
+                    <button onclick="toggleAscent()" id="btn-ascent" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition">
+                        OFF
+                    </button>
+                </div>
+                <div id="ascent-timeline" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2"></div>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
+                    <span id="session-hint" class="text-slate-400"></span>
+                    <button onclick="applyRecommendedDuration()" id="session-reco-btn" class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-mono text-[11px] hover:bg-cyan-900 transition"></button>
+                    <span id="session-note" class="text-amber-300" role="status"></span>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex-1 min-w-[240px]">
+                        <h3 class="text-xs font-semibold text-white">Mode léger</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Coupe l'oscilloscope et les effets visuels pour réserver le téléphone au son. Actif par défaut sur écran tactile.</p>
+                    </div>
+                    <button onclick="toggleLightMode()" id="btn-light-mode" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition">
+                        OFF
+                    </button>
+                </div>
+            </div>
         </section>
-    </div>
 
-    <div class="setup">
-        <h2 class="section-title">Choisissez votre horizon</h2>
-        <div class="horizons">
-            <button onclick="applyProtocol('focus10', false)" id="proto-focus10" class="protocol-card active-protocol"><span class="label">Horizon 1</span><span class="horizon-name">Repos éveillé</span><span class="horizon-line">Corps au repos, esprit présent.</span></button>
-            <button onclick="applyProtocol('focus12', false)" id="proto-focus12" class="protocol-card"><span class="label">Horizon 2</span><span class="horizon-name">Perception élargie</span><span class="horizon-line">Attention ouverte et imagerie intérieure.</span></button>
-            <button onclick="applyProtocol('focus15', false)" id="proto-focus15" class="protocol-card"><span class="label">Horizon 3</span><span class="horizon-name">Hors du temps</span><span class="horizon-line">Silence intérieur, repères qui s'effacent.</span></button>
-            <button onclick="applyProtocol('focus21', false)" id="proto-focus21" class="protocol-card"><span class="label">Horizon 4</span><span class="horizon-name">Le Seuil</span><span class="horizon-line">Exploration hors du corps.</span></button>
-        </div>
-
-        <div class="settings">
-            <div class="panel">
-                <div class="panel-title">Durée</div>
-                <div class="stepper">
-                    <button class="step" onclick="nudgeSession(-5)" aria-label="Réduire la session de 5 minutes">−5</button>
-                    <input id="session-minutes" type="number" min="10" max="180" step="1" value="30" aria-label="Durée de session en minutes" onchange="setTimerDuration(this.value)">
-                    <span class="muted">min</span>
-                    <button class="step" onclick="nudgeSession(5)" aria-label="Allonger la session de 5 minutes">+5</button>
+        <!-- V2.3: Named Settings Profiles -->
+        <section class="glass-panel rounded-2xl p-4 sm:p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+                <h2 class="text-sm font-semibold text-white">Profils de réglages</h2>
+                <span class="text-xs text-slate-400">Gardés dans ce navigateur • Exportez-les pour en conserver une copie</span>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 text-xs">
+                <div class="flex gap-2">
+                    <input id="profile-name" type="text" maxlength="60" placeholder="Nom du profil" aria-label="Nom du profil" class="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400">
+                    <button onclick="saveProfile()" class="px-3 py-1.5 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-700/60 hover:bg-cyan-900 font-medium transition">Enregistrer</button>
                 </div>
-                <div class="row">
-                    <span id="session-hint" class="label"></span>
-                    <button id="session-reco-btn" class="reco" onclick="applyRecommendedDuration()"></button>
+                <div class="flex gap-2">
+                    <select id="profile-select" aria-label="Profil enregistré" onchange="onProfileSelected()" class="flex-1 min-w-0 px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:border-cyan-400"></select>
+                    <button onclick="loadSelectedProfile()" class="px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-700/60 hover:bg-emerald-900 font-medium transition">Charger</button>
+                    <button onclick="deleteSelectedProfile()" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">Supprimer</button>
+                </div>
+                <div class="flex gap-2 lg:justify-end">
+                    <button onclick="exportProfiles()" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">Exporter</button>
+                    <label class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition cursor-pointer">
+                        Importer
+                        <input id="profile-import" type="file" accept=".json,application/json" onchange="importProfiles(this)" class="hidden">
+                    </label>
                 </div>
             </div>
-            <div class="panel">
-                <div class="panel-title">Sas d'installation</div>
-                <div class="seg-group" role="group" aria-label="Sas d'installation">
-                    <button onclick="setPrepMinutes(0)" id="prep-0" class="prep-btn seg on">Aucun</button>
-                    <button onclick="setPrepMinutes(2)" id="prep-2" class="prep-btn seg">2 min</button>
-                    <button onclick="setPrepMinutes(5)" id="prep-5" class="prep-btn seg">5 min</button>
+            <p id="profile-note" class="text-xs text-amber-300 mt-2.5 min-h-[1rem]" role="status"></p>
+        </section>
+
+        <!-- NEW V2.0 PANEL: 4 Independently Toggleable Next-Gen Neuro-Acoustic Modules -->
+        <section class="glass-panel rounded-2xl p-4 sm:p-5 border border-purple-500/30">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">NOUVELLE GÉNÉRATION V2.0</span>
+                    <h2 class="text-sm font-semibold text-white">Modules d'Ingénierie Neuro-Acoustique Avancée (Activables Indépendamment)</h2>
                 </div>
-                <div class="label">Le temps de vous installer, avec le bruit rose seul.</div>
+                <span class="text-xs text-slate-400">Activez ou combinez chaque brique à la carte selon votre objectif</span>
             </div>
-            <div class="panel">
-                <div class="row">
-                    <div class="panel-title">Ascension progressive</div>
-                    <button id="btn-ascent" class="switch" onclick="toggleAscent()" aria-pressed="false" aria-label="Ascension progressive"></button>
-                </div>
-                <div class="label" style="margin-top: 14px">Traverse chaque horizon jusqu'à celui que vous avez choisi, avec un temps de stabilisation à chacun.</div>
-            </div>
-        </div>
-        <div id="ascent-timeline" class="ascent-timeline hidden"></div>
 
-        <div class="page-end">
-            <div class="page-links"><button class="btn-quiet" onclick="toggleAdvanced()">Réglages avancés</button> <a class="btn-quiet link-button" href="manuel.pdf" target="_blank" rel="noopener">Manuel</a></div>
-            <p class="notice">Outil expérimental : aucun résultat n'est promis, les effets dépendent de la sensibilité de chacun. Déconseillé aux personnes sujettes à l'épilepsie photosensible ou auditive. Ne jamais utiliser en conduisant.</p>
-        </div>
-    </div>
-
-    <div class="advanced">
-        <div class="row">
-            <h2>Réglages avancés</h2>
-            <button class="btn-quiet" onclick="toggleAdvanced()">Revenir à la vue simple</button>
-        </div>
-
-        <div class="advanced-grid">
-            <section class="panel">
-                <div class="panel-title">Fréquence porteuse</div>
-                <div class="row" style="margin-top: 10px">
-                    <label class="label" for="carrier-slider">Hauteur du son</label>
-                    <span class="big-value"><span id="carrier-display">100.0</span> Hz</span>
-                </div>
-                <input id="carrier-slider" type="range" min="50" max="450" step="0.5" value="100" oninput="setCarrierFrequency(this.value, false)">
-                <div class="chips">
-                    <button onclick="setCarrierFrequency(100, true)" id="freq-btn-100" class="freq-preset-btn chip active-preset">100</button>
-                    <button onclick="setCarrierFrequency(111, true)" id="freq-btn-111" class="freq-preset-btn chip">111</button>
-                    <button onclick="setCarrierFrequency(128, true)" id="freq-btn-128" class="freq-preset-btn chip">128</button>
-                    <button onclick="setCarrierFrequency(136.1, true)" id="freq-btn-136" class="freq-preset-btn chip">136,1</button>
-                    <button onclick="setCarrierFrequency(200, true)" id="freq-btn-200" class="freq-preset-btn chip">200</button>
-                    <button onclick="setCarrierFrequency(432, true)" id="freq-btn-432" class="freq-preset-btn chip">432</button>
-                    <button onclick="nudgeCarrier(-0.5)" class="chip" aria-label="Baisser de 0,5 Hz">−0,5</button>
-                    <button onclick="nudgeCarrier(0.5)" class="chip" aria-label="Monter de 0,5 Hz">+0,5</button>
-                </div>
-                <p id="clinical-title" class="label" style="margin-top: 14px; font-weight: 600"></p>
-                <p id="clinical-desc" class="label"></p>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title">Battement binaural</div>
-                <div class="row" style="margin-top: 10px">
-                    <label class="label" for="beat-slider">Écart entre les oreilles</label>
-                    <span class="big-value"><span id="beat-display">4.0</span> Hz</span>
-                </div>
-                <input id="beat-slider" type="range" min="0.5" max="14" step="0.1" value="4.0" oninput="setBinauralBeat(this.value, false)">
-                <div class="chips">
-                    <button onclick="setBinauralBeat(1.5, true)" id="beat-btn-1.5" class="binaural-preset-btn chip">1,5 Delta</button>
-                    <button onclick="setBinauralBeat(4.0, true)" id="beat-btn-4" class="binaural-preset-btn chip active-binaural">4 Thêta bas</button>
-                    <button onclick="setBinauralBeat(5.5, true)" id="beat-btn-5.5" class="binaural-preset-btn chip">5,5 Thêta</button>
-                    <button onclick="setBinauralBeat(7.83, true)" id="beat-btn-7.83" class="binaural-preset-btn chip">7,83 Schumann</button>
-                    <button onclick="setBinauralBeat(10.0, true)" id="beat-btn-10" class="binaural-preset-btn chip">10 Alpha</button>
-                </div>
-                <p id="brainwave-band-label" class="label" style="margin-top: 14px"></p>
-                <div class="readouts">
-                    <span>En ce moment : <strong id="readout-beat" class="values">+4.0 Hz</strong></span>
-                    <span>Gauche <strong id="freq-left-val" class="values">100.0 Hz</strong></span>
-                    <span>Droite <strong id="freq-right-val" class="values">104.0 Hz</strong></span>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title">Rampe et modules</div>
-                <div class="stack">
-                    <div id="card-mod-ramp" class="module">
-                        <div class="row"><span class="module-name">Rampe du battement</span><button id="btn-mod-ramp" class="switch" onclick="toggleModule('ramp')" aria-pressed="false" aria-label="Rampe du battement"></button></div>
-                        <div class="chips">
-                            <button onclick="setRampDuration(5)" id="ramp-dur-5" class="chip on">5 min</button>
-                            <button onclick="setRampDuration(10)" id="ramp-dur-10" class="chip">10 min</button>
-                        </div>
-                        <div class="ramp-track"><div id="ramp-progress-bar" class="ramp-fill"></div></div>
-                        <div id="ramp-status-text" class="label" style="margin-top: 6px">Cible directe verrouillée</div>
-                    </div>
-                    <div id="card-mod-gamma" class="module">
-                        <div class="row"><span class="module-name">Pont Gamma 40 Hz</span><button id="btn-mod-gamma" class="switch" onclick="toggleModule('gamma')" aria-pressed="false" aria-label="Pont Gamma 40 Hz"></button></div>
-                        <div class="slider-line"><label class="label" for="gamma-depth-slider">Intensité</label><input id="gamma-depth-slider" type="range" min="5" max="70" value="25" oninput="updateAdvancedModules()"><span id="gamma-depth-label" class="values">25%</span></div>
-                    </div>
-                    <div id="card-mod-rotation" class="module">
-                        <div class="row"><span class="module-name">Rotation du son</span><button id="btn-mod-rotation" class="switch" onclick="toggleModule('rotation')" aria-pressed="false" aria-label="Rotation du son"></button></div>
-                        <div class="slider-line"><label class="label" for="rot-speed-slider">Vitesse</label><input id="rot-speed-slider" type="range" min="0.05" max="0.40" step="0.01" value="0.15" oninput="updateAdvancedModules()"><span id="rot-speed-label" class="values">0.15 Hz</span></div>
-                    </div>
-                    <div id="card-mod-iso" class="module">
-                        <div class="row"><span class="module-name">Onde isochrone</span><button id="btn-mod-iso" class="switch" onclick="toggleModule('iso')" aria-pressed="false" aria-label="Onde isochrone"></button></div>
-                        <div class="slider-line"><label class="label" for="iso-depth-slider">Profondeur</label><input id="iso-depth-slider" type="range" min="10" max="90" value="40" oninput="updateAdvancedModules()"><span id="iso-depth-label" class="values">40%</span></div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title">Mixage</div>
-                <div class="stack">
-                    <div><div class="row"><label for="vol-carrier-slider">Porteuse et battement</label><span id="vol-carrier-label" class="values">65%</span></div><input id="vol-carrier-slider" type="range" min="0" max="100" value="65" oninput="updateMixer()"></div>
-                    <div><div class="row"><label for="vol-pad-slider">Nappe harmonique</label><span id="vol-pad-label" class="values">25%</span></div><input id="vol-pad-slider" type="range" min="0" max="100" value="25" oninput="updateMixer()"></div>
-                    <div><div class="row"><label for="vol-flute-slider">Bruit rose</label><span id="vol-flute-label" class="values">40%</span></div><input id="vol-flute-slider" type="range" min="0" max="100" value="40" oninput="updateMixer()"></div>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="row">
-                    <div class="panel-title">Guide respiratoire 4-2-6</div>
-                    <button id="breath-toggle-btn" class="switch on" onclick="toggleBreathingGuide()" aria-pressed="true" aria-label="Guide respiratoire"></button>
-                </div>
-                <div class="breath">
-                    <div class="breath-ring"><div id="breath-outer-ring"></div><div id="breath-circle"><span id="breath-timer">4.0s</span></div></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <!-- Module A: Theta-Gamma 40 Hz Bridge -->
+                <div id="card-mod-gamma" class="p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/70 flex flex-col justify-between transition-all">
                     <div>
-                        <div id="breath-phase-label" class="breath-label">1. Inspirez lentement par le nez...</div>
-                        <p class="label">Déposez vos préoccupations dans un coffre mental, relâchez les paupières et le front.</p>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[11px] font-mono font-semibold text-purple-300">01 • PONT THÊTA-GAMMA</span>
+                            <button onclick="toggleModule('gamma')" id="btn-mod-gamma" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition">
+                                OFF
+                            </button>
+                        </div>
+                        <h4 class="text-xs font-semibold text-white">Lucidité Préfrontale 40 Hz (Anti-Décrochage)</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                            Superpose un battement harmonique à <strong class="text-slate-200">40 Hz</strong> pour garder le cortex analytique éveillé pendant que le corps dort en Thêta/Delta.
+                        </p>
+                    </div>
+                    <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                        <div class="flex justify-between text-[11px] font-mono mb-1">
+                            <span class="text-slate-400">Intensité 40 Hz</span>
+                            <span id="gamma-depth-label" class="text-purple-300">25%</span>
+                        </div>
+                        <input id="gamma-depth-slider" type="range" min="5" max="70" value="25" oninput="updateAdvancedModules()" class="w-full purple-slider">
                     </div>
                 </div>
-                <div class="row" style="margin-top: 14px">
-                    <p class="label">Accordage vocal : à l'expiration, un léger bourdonnement sur la porteuse.</p>
-                    <div class="chips" style="margin-top: 0; flex: none">
-                        <button class="chip" onclick="setCarrierFrequency(100, true)">100 Hz</button>
-                        <button class="chip" onclick="setCarrierFrequency(136.1, true)">136,1 Hz</button>
+
+                <!-- Module B: Dynamic Progressive Ramp -->
+                <div id="card-mod-ramp" class="p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/70 flex flex-col justify-between transition-all">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[11px] font-mono font-semibold text-cyan-300">02 • RAMPE DYNAMIQUE</span>
+                            <button onclick="toggleModule('ramp')" id="btn-mod-ramp" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition">
+                                OFF
+                            </button>
+                        </div>
+                        <h4 class="text-xs font-semibold text-white">Glissando Progressif (12 Hz → Cible)</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                            Descend automatiquement d'Alpha (<strong class="text-slate-200">12.0 Hz</strong>) vers Schumann (<strong class="text-slate-200">7.83 Hz</strong>) puis verrouille votre Horizon cible sans décrochage.
+                        </p>
+                    </div>
+                    <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                        <div class="flex justify-between items-center text-[11px] font-mono mb-1.5">
+                            <span class="text-slate-400">Durée descente :</span>
+                            <div class="flex gap-1">
+                                <button onclick="setRampDuration(5)" id="ramp-dur-5" class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/60">5m</button>
+                                <button onclick="setRampDuration(10)" id="ramp-dur-10" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400">10m</button>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                            <div id="ramp-progress-bar" class="bg-gradient-to-r from-cyan-400 to-amber-400 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                        <div id="ramp-status-text" class="text-[10px] font-mono text-slate-400 mt-1 text-right">Cible directe verrouillée</div>
                     </div>
                 </div>
-            </section>
 
-            <section class="panel">
-                <div class="row"><div class="panel-title">Oscilloscope</div><span id="audio-status-badge" class="badge">EN VEILLE</span></div>
-                <div class="scope">
-                    <canvas id="oscilloscope" aria-hidden="true"></canvas>
-                    <div class="scope-tags">
-                        <span id="badge-gamma" class="tag hidden">Pont Gamma</span>
-                        <span id="badge-ramp" class="tag hidden">Rampe</span>
-                        <span id="badge-rot" class="tag hidden">Rotation</span>
-                        <span id="badge-iso" class="tag hidden">Isochrone</span>
+                <!-- Module C: 3D Vestibular Rotation -->
+                <div id="card-mod-rotation" class="p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/70 flex flex-col justify-between transition-all">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[11px] font-mono font-semibold text-emerald-300">03 • ROTATION 3D</span>
+                            <button onclick="toggleModule('rotation')" id="btn-mod-rotation" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition">
+                                OFF
+                            </button>
+                        </div>
+                        <h4 class="text-xs font-semibold text-white">Désengagement Vestibulaire (Cervelet)</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                            Fait tourner le champ harmonique à 360° autour du crâne pour saturer le repère gravitaire de l'oreille interne et induire le flottement.
+                        </p>
+                    </div>
+                    <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                        <div class="flex justify-between text-[11px] font-mono mb-1">
+                            <span class="text-slate-400">Vitesse Gyration</span>
+                            <span id="rot-speed-label" class="text-emerald-300">0.15 Hz</span>
+                        </div>
+                        <input id="rot-speed-slider" type="range" min="0.05" max="0.40" step="0.01" value="0.15" oninput="updateAdvancedModules()" class="w-full emerald-slider">
                     </div>
                 </div>
-                <div class="row" style="margin-top: 14px">
-                    <div><div>Mode léger</div><div class="label">Coupe l'oscilloscope et les effets, pour réserver le téléphone au son. Actif par défaut sur écran tactile.</div></div>
-                    <button id="btn-light-mode" class="switch" onclick="toggleLightMode()" aria-pressed="false" aria-label="Mode léger"></button>
-                </div>
-            </section>
 
-            <section class="panel wide">
-                <div class="panel-title">Profils de réglages</div>
-                <div class="label">Gardés dans ce navigateur. Exportez-les pour en conserver une copie.</div>
-                <div class="chips" style="margin-top: 12px">
-                    <input id="profile-name" class="field field-grow" type="text" maxlength="60" placeholder="Nom du profil" aria-label="Nom du profil">
-                    <button class="chip" onclick="saveProfile()">Enregistrer</button>
+                <!-- Module D: Isochronic Vibrational Pulse -->
+                <div id="card-mod-iso" class="p-3.5 rounded-xl border border-slate-700/80 bg-slate-900/70 flex flex-col justify-between transition-all">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[11px] font-mono font-semibold text-rose-300">04 • ONDE ISOCHRONE</span>
+                            <button onclick="toggleModule('iso')" id="btn-mod-iso" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition">
+                                OFF
+                            </button>
+                        </div>
+                        <h4 class="text-xs font-semibold text-white">Induction de l'État Vibratoire (7 Hz / Sync)</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                            Ajoute une pulsation d'amplitude physique synchronisée au battement binaural pour stimuler le corps énergétique avant la séparation.
+                        </p>
+                    </div>
+                    <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                        <div class="flex justify-between text-[11px] font-mono mb-1">
+                            <span class="text-slate-400">Profondeur Pulsation</span>
+                            <span id="iso-depth-label" class="text-rose-300">40%</span>
+                        </div>
+                        <input id="iso-depth-slider" type="range" min="10" max="90" value="40" oninput="updateAdvancedModules()" class="w-full rose-slider">
+                    </div>
                 </div>
-                <div class="chips">
-                    <select id="profile-select" class="field field-grow" aria-label="Profil enregistré" onchange="onProfileSelected()"></select>
-                    <button class="chip" onclick="loadSelectedProfile()">Charger</button>
-                    <button class="chip" onclick="deleteSelectedProfile()">Supprimer</button>
-                    <button class="chip" onclick="exportProfiles()">Exporter</button>
-                    <label class="chip file-button">Importer<input id="profile-import" class="visually-hidden" type="file" accept=".json,application/json" onchange="importProfiles(this)"></label>
-                </div>
-                <p id="profile-note" class="profile-note" role="status"></p>
-            </section>
+            </div>
+        </section>
 
-            <details class="panel wide">
-                <summary class="panel-title" style="cursor: pointer">Journal d'interruptions <span id="session-log-count" class="label" style="font-weight: 400"></span></summary>
-                <p class="label" style="margin-top: 8px">Note les lectures, les pauses, l'extinction de l'écran et ce que le système coupe. À consulter ou à copier après un essai, écran éteint par exemple.</p>
-                <textarea id="session-log-text" class="log" readonly aria-label="Journal d'interruptions"></textarea>
-                <div class="chips">
-                    <button class="chip" onclick="copySessionLog()">Copier</button>
-                    <button class="chip" onclick="clearSessionLog()">Effacer</button>
+        <!-- Main Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left Column: Oscilloscope, Telemetry & Preparatory Protocol (5 cols) -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+
+                <!-- Real-Time Stereo & Binaural Oscilloscope -->
+                <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <span>Oscilloscope de Synchronisation</span>
+                                <span id="audio-status-badge" class="px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 text-slate-400">EN VEILLE</span>
+                            </h3>
+                            <p class="text-xs text-slate-400">Interférence de phase Hémisphère G / D & Modules V2 Actifs</p>
+                        </div>
+                        <div class="text-right font-mono">
+                            <div class="text-xs text-slate-400">Δ Binaural Instantané</div>
+                            <div id="readout-beat" class="text-sm font-bold text-amber-400">+4.0 Hz (Thêta)</div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Container -->
+                    <div class="relative w-full h-52 bg-slate-950/90 rounded-xl border border-slate-800/90 overflow-hidden shadow-inner">
+                        <canvas id="oscilloscope" class="w-full h-full block"></canvas>
+
+                        <!-- Active Modules Top Badges inside Canvas -->
+                        <div class="absolute top-2.5 left-3 right-3 flex flex-wrap items-center gap-1.5 text-[10px] font-mono pointer-events-none">
+                            <span id="badge-gamma" class="hidden px-2 py-0.5 rounded bg-purple-950/90 text-purple-300 border border-purple-500/40">γ PONT 40 Hz ACTIF</span>
+                            <span id="badge-ramp" class="hidden px-2 py-0.5 rounded bg-cyan-950/90 text-cyan-300 border border-cyan-500/40">↘ RAMPE AUTO</span>
+                            <span id="badge-rot" class="hidden px-2 py-0.5 rounded bg-emerald-950/90 text-emerald-300 border border-emerald-500/40">↻ GYRO 3D</span>
+                            <span id="badge-iso" class="hidden px-2 py-0.5 rounded bg-rose-950/90 text-rose-300 border border-rose-500/40">∿ ISOCHRONE</span>
+                        </div>
+                        
+                        <!-- Overlay Readouts inside Canvas -->
+                        <div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] font-mono pointer-events-none">
+                            <div class="flex items-center gap-2 bg-slate-900/80 px-2.5 py-1 rounded-md border border-cyan-500/30 text-cyan-300">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                <span>OREILLE G : <strong id="freq-left-val">100.0 Hz</strong></span>
+                            </div>
+                            <div class="flex items-center gap-2 bg-slate-900/80 px-2.5 py-1 rounded-md border border-amber-500/30 text-amber-300">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                <span>OREILLE D : <strong id="freq-right-val">104.0 Hz</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Neuro-Acoustic Telemetry Description Box -->
+                    <div class="mt-4 p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                        <div class="flex items-center justify-between text-xs font-mono text-cyan-400 mb-1">
+                            <span id="clinical-title">ÉTAT CIBLE : PORTEUSE DE BASE (100 Hz)</span>
+                        </div>
+                        <p id="clinical-desc" class="text-xs text-slate-300 leading-relaxed">
+                            La porteuse à 100 Hz sert de base aux Horizons 1 et 3. Associée à un différentiel binaural de 4,0 Hz, elle vise la frontière hypnagogique où le tonus musculaire s'efface tandis que l'observateur interne demeure éveillé.
+                        </p>
+                    </div>
                 </div>
-            </details>
+
+                <!-- Preparatory Protocol: Vocal Tuning & Breathing Cycle -->
+                <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <h3 class="text-sm font-semibold text-white">Protocole Préparatoire d'Entrée en Phase</h3>
+                            <p class="text-xs text-slate-400">Accordage Résonant (Cycle 12s) • Isolation Sensorielle Progressive</p>
+                        </div>
+                        <button onclick="toggleBreathingGuide()" id="breath-toggle-btn" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 hover:bg-cyan-900 transition">
+                            Guide Actif
+                        </button>
+                    </div>
+
+                    <div class="my-3 flex items-center gap-5 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                        <!-- Breathing Visual Circle -->
+                        <div class="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                            <div id="breath-outer-ring" class="absolute inset-0 rounded-full border-2 border-cyan-500/30 transition-all duration-300"></div>
+                            <div id="breath-circle" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500/40 to-purple-500/40 border border-cyan-300/60 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                                <span id="breath-timer" class="text-xs font-mono font-bold text-white">4.0s</span>
+                            </div>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div class="space-y-1.5 flex-1">
+                            <div id="breath-phase-label" class="text-sm font-semibold text-cyan-300">1. Inspirez lentement par le nez...</div>
+                            <p id="breath-instruction" class="text-xs text-slate-400 leading-relaxed">
+                                Déposez mentalement toute préoccupation extérieure dans un <strong class="text-slate-200">« Coffre mental »</strong> symbolique. Relâchez les paupières et le front.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Vocal Tuning Helper -->
+                    <div class="p-3 rounded-xl bg-purple-950/25 border border-purple-500/30 flex items-center justify-between gap-3">
+                        <div class="text-xs">
+                            <span class="font-semibold text-purple-300 block">Accordage Vocal</span>
+                            <span class="text-slate-400">Durant les 5 premières minutes, accompagnez l'expiration d'un léger bourdonnement vocal calé sur 100 Hz ou 136.1 Hz pour stimuler le nerf vague.</span>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-1.5 flex-shrink-0">
+                            <button onclick="setCarrierFrequency(100, true)" class="px-2.5 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-200 text-xs font-mono font-medium transition">
+                                100 Hz
+                            </button>
+                            <button onclick="setCarrierFrequency(136.1, true)" class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-200 text-xs font-mono font-medium transition">
+                                136.1 Hz
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Carrier Controls, Binaural Generator & Noise Mixer (7 cols) -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+
+                <!-- 1. Carrier Frequency Selector -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <div>
+                            <span class="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-semibold">Module 01 • Porteuse Acoustique de Base</span>
+                            <h3 class="text-base font-semibold text-white">Fréquence Porteuse Fondamentale</h3>
+                        </div>
+                        <div class="flex items-baseline gap-1 bg-slate-950 px-3 py-1.5 rounded-xl border border-cyan-500/40">
+                            <span id="carrier-display" class="text-xl font-mono font-bold text-cyan-400">100.0</span>
+                            <span class="text-xs font-mono text-slate-400">Hz</span>
+                        </div>
+                    </div>
+
+                    <!-- Preset Frequency Buttons Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-5">
+                        <button onclick="setCarrierFrequency(100, true)" id="freq-btn-100" class="freq-preset-btn active-preset text-left p-3 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-sm text-white">100 Hz</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300">Base</span>
+                            </div>
+                            <div class="text-xs font-medium text-slate-200 mt-1">Ancrage Horizons 1 et 3</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Porteuse grave à haute pénétration</div>
+                        </button>
+
+                        <button onclick="setCarrierFrequency(111, true)" id="freq-btn-111" class="freq-preset-btn text-left p-3 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-sm text-white">111 Hz</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300">Hypogée</span>
+                            </div>
+                            <div class="text-xs font-medium text-slate-200 mt-1">Bêta-Endorphines & Transe</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Mise en veille du cortex verbal</div>
+                        </button>
+
+                        <button onclick="setCarrierFrequency(128, true)" id="freq-btn-128" class="freq-preset-btn text-left p-3 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-sm text-white">128 Hz</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-950 text-blue-300">Otto / Os</span>
+                            </div>
+                            <div class="text-xs font-medium text-slate-200 mt-1">Conduction Crânienne</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Détente somatique profonde</div>
+                        </button>
+
+                        <button onclick="setCarrierFrequency(136.1, true)" id="freq-btn-136" class="freq-preset-btn text-left p-3 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-sm text-white">136.1 Hz</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300">Om / Terre</span>
+                            </div>
+                            <div class="text-xs font-medium text-slate-200 mt-1">Horizon 2 & Perception à distance</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Stabilité cardiaque & clarté</div>
+                        </button>
+
+                        <button onclick="setCarrierFrequency(200, true)" id="freq-btn-200" class="freq-preset-btn text-left p-3 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-sm text-white">200 Hz</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-950 text-purple-300">Octave 2x</span>
+                            </div>
+                            <div class="text-xs font-medium text-slate-200 mt-1">Porteuse Horizon 4</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Clarté de l'imagerie interne</div>
+                        </button>
+
+                        <button onclick="setCarrierFrequency(432, true)" id="freq-btn-432" class="freq-preset-btn text-left p-3 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-sm text-white">432 Hz</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-950 text-amber-300">Homéostasie</span>
+                            </div>
+                            <div class="text-xs font-medium text-slate-200 mt-1">Vigilance Haute Déf.</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Courbe d'Oster maximale</div>
+                        </button>
+                    </div>
+
+                    <!-- Fine Manual Carrier Slider -->
+                    <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+                        <div class="flex justify-between text-xs mb-2">
+                            <span class="text-slate-400">Ajustement fin de la porteuse (50 Hz — 450 Hz)</span>
+                            <div class="flex gap-2">
+                                <button onclick="nudgeCarrier(-0.5)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px]">-0.5 Hz</button>
+                                <button onclick="nudgeCarrier(0.5)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px]">+0.5 Hz</button>
+                            </div>
+                        </div>
+                        <input id="carrier-slider" type="range" min="50" max="450" step="0.5" value="100" oninput="setCarrierFrequency(this.value, false)" class="w-full">
+                        <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1.5">
+                            <span>50 Hz (Sub-grave)</span>
+                            <span>100 Hz (Base)</span>
+                            <span>136.1 Hz</span>
+                            <span>200 Hz (Octave)</span>
+                            <span>432 Hz</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Binaural Brainwave Entrainment Generator -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <div>
+                            <span class="text-[11px] font-mono uppercase tracking-wider text-amber-400 font-semibold">Module 02 • Différentiel d'Entraînement Inter-Hémisphérique</span>
+                            <h3 class="text-base font-semibold text-white">Battement Binaural Cible</h3>
+                        </div>
+                        <div class="flex items-baseline gap-1 bg-slate-950 px-3 py-1.5 rounded-xl border border-amber-500/40">
+                            <span id="beat-display" class="text-xl font-mono font-bold text-amber-400">4.0</span>
+                            <span class="text-xs font-mono text-slate-400">Hz</span>
+                        </div>
+                    </div>
+
+                    <!-- Binaural Presets -->
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
+                        <button onclick="setBinauralBeat(1.5, true)" id="beat-btn-1.5" class="binaural-preset-btn p-2.5 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 text-left transition">
+                            <div class="font-mono font-bold text-xs text-amber-300">1.5 Hz • Delta</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Horizon 3 • Hors du temps</div>
+                        </button>
+
+                        <button onclick="setBinauralBeat(4.0, true)" id="beat-btn-4" class="binaural-preset-btn active-binaural p-2.5 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 text-left transition">
+                            <div class="font-mono font-bold text-xs text-amber-300">4.0 Hz • Thêta Bas</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Horizon 1 • Hypnagogie</div>
+                        </button>
+
+                        <button onclick="setBinauralBeat(5.5, true)" id="beat-btn-5.5" class="binaural-preset-btn p-2.5 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 text-left transition">
+                            <div class="font-mono font-bold text-xs text-amber-300">5.5 Hz • Thêta RV</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Horizon 2 • Perception à distance</div>
+                        </button>
+
+                        <button onclick="setBinauralBeat(7.83, true)" id="beat-btn-7.83" class="binaural-preset-btn p-2.5 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 text-left transition">
+                            <div class="font-mono font-bold text-xs text-amber-300">7.83 Hz • Schumann</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Seuil α/θ & Résonance Terre</div>
+                        </button>
+
+                        <button onclick="setBinauralBeat(10.0, true)" id="beat-btn-10" class="binaural-preset-btn p-2.5 rounded-xl border border-slate-700/80 bg-slate-900/70 hover:bg-slate-800 text-left transition col-span-2 sm:col-span-1">
+                            <div class="font-mono font-bold text-xs text-amber-300">10.0 Hz • Alpha</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Relaxation préparatoire & retour</div>
+                        </button>
+                    </div>
+
+                    <!-- Fine Binaural Slider -->
+                    <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+                        <div class="flex justify-between text-xs mb-2">
+                            <span class="text-slate-400">Fréquence différentielle cible (0.5 Hz — 14.0 Hz)</span>
+                            <span id="brainwave-band-label" class="font-mono text-amber-400 text-xs">Seuil Thêta (État Hypnagogique & Rêve Lucide)</span>
+                        </div>
+                        <input id="beat-slider" type="range" min="0.5" max="14" step="0.1" value="4.0" oninput="setBinauralBeat(this.value, false)" class="w-full amber-slider">
+                        <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1.5">
+                            <span>Delta (0.5 - 4 Hz)</span>
+                            <span>Thêta (4 - 8 Hz : Phase & exploration)</span>
+                            <span>7.83 Hz (Schumann)</span>
+                            <span>Alpha (8 - 14 Hz)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Acoustic Mixing Console & Pink Noise "Ganzfeld" Layer -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <span class="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-semibold">Module 03 • Mixage Acoustique & Masquage Sensoriel (Effet Ganzfeld)</span>
+                            <h3 class="text-base font-semibold text-white">Équilibre des Couches Neuro-Acoustiques</h3>
+                        </div>
+                        <span class="text-xs text-slate-400 hidden sm:inline">Transitions douces anti-sursaut actives</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Pure Sine Wave Carrier Volume -->
+                        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="font-medium text-slate-200 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                    Volume des Porteuses Stéréo & Battement Binaural
+                                </span>
+                                <span id="vol-carrier-label" class="font-mono text-cyan-400">65%</span>
+                            </div>
+                            <input id="vol-carrier-slider" type="range" min="0" max="100" value="65" oninput="updateMixer()" class="w-full">
+                        </div>
+
+                        <!-- Multi-Layer Harmonic Drone (Fifth + Sub-Octave) -->
+                        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="font-medium text-slate-200 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                    Nappe Harmonique Spatiale (Sous-Octave & Quinte Juste)
+                                </span>
+                                <span id="vol-pad-label" class="font-mono text-amber-400">25%</span>
+                            </div>
+                            <input id="vol-pad-slider" type="range" min="0" max="100" value="25" oninput="updateMixer()" class="w-full amber-slider">
+                        </div>
+
+                        <!-- Pink Noise (Sensory Deprivation / Ganzfeld Blanket) -->
+                        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <div>
+                                    <span class="font-medium text-slate-200 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        Bruit Rose (Isolation Sensorielle & Masquage)
+                                    </span>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Tapis de bruit rose filtré modulé sur le souffle : neutralise les bruits ambiants et stabilise la perception du battement binaural</p>
+                                </div>
+                                <span id="vol-flute-label" class="font-mono text-emerald-400">40%</span>
+                            </div>
+                            <input id="vol-flute-slider" type="range" min="0" max="100" value="40" oninput="updateMixer()" class="w-full emerald-slider">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
-        <p class="notice" style="margin-top: 20px">Outil expérimental : aucun résultat n'est promis, les effets dépendent de la sensibilité de chacun. Déconseillé aux personnes sujettes à l'épilepsie photosensible ou auditive. Ne jamais utiliser en conduisant.</p>
-    </div>
-</div>
+        <!-- V2.7: Interruption Log -->
+        <details class="glass-panel rounded-2xl p-4 sm:p-5 text-xs text-slate-400">
+            <summary class="cursor-pointer text-sm font-semibold text-white">Journal d'interruptions <span id="session-log-count" class="ml-2 text-xs font-normal font-mono text-slate-400"></span></summary>
+            <p class="mt-2 leading-relaxed">Note les lectures, les pauses, l'extinction de l'écran et ce que le système coupe. À consulter ou à copier après un essai, écran éteint par exemple.</p>
+            <textarea id="session-log-text" readonly rows="10" aria-label="Journal d'interruptions" class="mt-3 w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-300 font-mono text-[11px] leading-relaxed"></textarea>
+            <div class="mt-2 flex gap-2">
+                <button onclick="copySessionLog()" class="px-3 py-1.5 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-700/60 hover:bg-cyan-900 font-medium transition">Copier</button>
+                <button onclick="clearSessionLog()" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">Effacer</button>
+            </div>
+        </details>
+
+        <!-- Bottom Information & Neurophysiology Notice -->
+        <footer class="glass-panel rounded-2xl p-4 sm:p-5 text-xs text-slate-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-800/80">
+            <div class="space-y-1">
+                <div class="font-semibold text-slate-200 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Note Neurophysiologique & Précautions d'Utilisation</span>
+                </div>
+                <p class="leading-relaxed">
+                    Lorsqu'une fréquence de 100 Hz est diffusée dans l'oreille gauche et 104 Hz dans l'oreille droite, le complexe olivaire supérieur du tronc cérébral génère un battement binaural perçu de 4 Hz. Ce phénomène d'entraînement acoustique (<em>Frequency-Following Response</em>) facilite l'accès volontaire à l'état hypnagogique, aux rêves lucides et à l'introspection sensorielle profonde. Déconseillé aux personnes sujettes à l'épilepsie photosensible ou auditive. Ne jamais utiliser en conduisant. Outil expérimental : aucun résultat n'est promis, les effets dépendent de la sensibilité de chacun.
+                </p>
+            </div>
+            <div class="flex-shrink-0 font-mono text-[11px] text-slate-500 text-right">
+                Moteur Web Audio API 32-bit Float<br>
+                Séparation Stéréo Stricte G/D
+            </div>
+        </footer>
+
+    </main>
 
     <script>
         // ============================================================================
@@ -489,7 +816,7 @@
         const MANUAL_STEP_SECONDS = 0.25; // Softens manual slider moves
 
         // V2.4: lock screen player. The icon is embedded so it works without any network.
-        const APP_VERSION = 'V3.1';
+        const APP_VERSION = 'V2.9.1';
         const APP_ICON = 'data:image/png;base64,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';
 
         // V2.3: frequency control signals. Everything following the carrier or the beat is
@@ -548,11 +875,11 @@
             },
             111: {
                 title: "ÉTAT CIBLE : RÉSONANCE HYPOGÉE & BÊTA-ENDORPHINES (111 Hz)",
-                desc: "Piste expérimentale : autour de 111 Hz, certains travaux archéo-acoustiques évoquent une baisse de l'activité du cortex préfrontal verbal, propice à un état de transe lucide."
+                desc: "Les études archéo-acoustiques et neurobiologiques montrent qu'autour de 111 Hz, l'activité du cortex préfrontal verbal diminue au profit d'une bascule vers l'hémisphère droit intuitif, facilitant l'état de transe lucide."
             },
             128: {
                 title: "ÉTAT CIBLE : CONDUCTION OSSEUSE & DÉTENTE SOMATIQUE (128 Hz)",
-                desc: "Fréquence fondamentale du diapason d'Otto. Piste expérimentale : une lourdeur physique rapide, qui faciliterait l'entrée dans l'Horizon 1."
+                desc: "Fréquence fondamentale du diapason d'Otto. Stimule la libération de monoxyde d'azote et provoque une lourdeur physique rapide qui accélère la paralysie du sommeil consciente (Horizon 1)."
             },
             136: {
                 title: "ÉTAT CIBLE : EXPANSION SPATIALE & PERCEPTION À DISTANCE (136.1 Hz)",
@@ -564,7 +891,7 @@
             },
             432: {
                 title: "ÉTAT CIBLE : COURBE D'OSTER MAXIMALE & HOMÉOSTASIE (432 Hz)",
-                desc: "Située au cœur de la zone de sensibilité maximale du tronc cérébral aux battements binauraux (courbe de Gerald Oster), pour un repérage facile du battement."
+                desc: "Située au cœur de la zone de sensibilité maximale du tronc cérébral aux battements binauraux (courbe de Gerald Oster), offrant un verrouillage immédiat."
             }
         };
 
@@ -895,12 +1222,11 @@
 
         // Shows the Focus being played: in ascent, the current stage and not the target
         function updateMediaSession() {
-            refreshSessionView();
             if (!('mediaSession' in navigator)) return;
 
             if (typeof MediaMetadata !== 'undefined') {
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: inPrep() ? `Préparation • ${currentSoundLabel()}` : currentSoundLabel(),
+                    title: inPrep() ? `Préparation • ${focusLabel(state.currentFocus)}` : focusLabel(state.currentFocus),
                     artist: 'Console Neuro-Acoustique',
                     album: `Entrée en Phase ${APP_VERSION}`,
                     artwork: [{ src: APP_ICON, sizes: '512x512', type: 'image/png' }]
@@ -993,11 +1319,13 @@
 
             if (isActive) {
                 card.classList.add('active-module-card');
-                setSwitch(btn, true);
+                btn.textContent = 'ACTIF';
+                btn.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 transition';
                 if (badge) badge.classList.remove('hidden');
             } else {
                 card.classList.remove('active-module-card');
-                setSwitch(btn, false);
+                btn.textContent = 'OFF';
+                btn.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition';
                 if (badge) badge.classList.add('hidden');
             }
         }
@@ -1042,11 +1370,11 @@
 
         function updateRampDurationUI(mins) {
             document.getElementById('ramp-dur-5').className = mins === 5
-                ? 'chip on'
-                : 'chip';
+                ? 'px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/60'
+                : 'px-2 py-0.5 rounded bg-slate-800 text-slate-400';
             document.getElementById('ramp-dur-10').className = mins === 10
-                ? 'chip on'
-                : 'chip';
+                ? 'px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/60'
+                : 'px-2 py-0.5 rounded bg-slate-800 text-slate-400';
         }
 
         function updateAdvancedModules() {
@@ -1107,7 +1435,7 @@
                 startAudioOutput();
 
                 statusBadge.textContent = "SYNCHRONISATION ACTIVE";
-                statusBadge.className = "badge on";
+                statusBadge.className = "px-2 py-0.5 text-[10px] font-mono rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60";
 
                 lastTickClock = null;
                 lastDropoutCount = null;
@@ -1128,7 +1456,7 @@
                 isPlaying = false;
 
                 statusBadge.textContent = "EN PAUSE";
-                statusBadge.className = "badge";
+                statusBadge.className = "px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 text-slate-400";
 
                 stopSessionTimer();
                 stopAudioOutput();
@@ -1137,7 +1465,6 @@
                 updateMediaSession();
             }
             updateTransportUI();
-            renderAscentTimeline();
         }
 
         // Stop: ends the session for good, the next start is a new session
@@ -1162,7 +1489,7 @@
 
             const statusBadge = document.getElementById('audio-status-badge');
             statusBadge.textContent = "EN VEILLE";
-            statusBadge.className = "badge";
+            statusBadge.className = "px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 text-slate-400";
 
             setSessionNote('');
             syncSessionUI();
@@ -1185,10 +1512,16 @@
             document.getElementById('pause-icon').classList.toggle('hidden', !isPlaying);
             document.getElementById('play-btn-text').textContent = isPlaying ? 'Pause' : (paused ? 'Reprendre' : 'Entrer en Phase');
 
-            playBtn.className = isPlaying ? 'btn btn-pause' : 'btn btn-primary';
-            stopBtn.className = 'btn btn-stop';
-            stopBtn.disabled = !(isPlaying || paused);
-            refreshSessionView();
+            const tone = isPlaying
+                ? 'from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-amber-500/20'
+                : 'from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 shadow-cyan-500/20';
+            playBtn.className = `flex-1 sm:flex-none flex items-center justify-center gap-2.5 min-w-[170px] px-5 py-2.5 rounded-xl text-sm transition-all duration-200 bg-gradient-to-r ${tone} text-slate-950 shadow-lg active:scale-95`;
+
+            const canStop = isPlaying || paused;
+            stopBtn.disabled = !canStop;
+            stopBtn.className = `flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${canStop
+                ? 'border-rose-500/60 bg-rose-950/60 text-rose-200 hover:bg-rose-900/70 active:scale-95'
+                : 'border-slate-700 bg-slate-900 text-slate-500 cursor-not-allowed'}`;
         }
 
         // Update Carrier Frequency smoothly
@@ -1354,10 +1687,8 @@
         function applyProtocol(protoKey, autoStart = true) {
             if (!focusProtocols[protoKey]) return;
 
-            activeProfileName = null;
             state.selectedFocus = protoKey;
             highlightFocusCard(protoKey);
-            syncQuickProfiles();
             setSessionNote('');
 
             if (state.ascentEnabled) {
@@ -1528,7 +1859,10 @@
 
         function updateAscentButton() {
             const btn = document.getElementById('btn-ascent');
-            setSwitch(btn, state.ascentEnabled);
+            btn.textContent = state.ascentEnabled ? 'ACTIF' : 'OFF';
+            btn.className = state.ascentEnabled
+                ? 'px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 transition'
+                : 'px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition';
         }
 
         function toggleAscent() {
@@ -1567,15 +1901,15 @@
                 const isCurrent = isPlaying && i === plan.index;
                 const isDone = isPlaying && i < plan.index;
                 const tone = isCurrent
-                    ? 'current'
+                    ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-200'
                     : isDone
-                        ? 'done'
-                        : '';
+                        ? 'border-slate-800 bg-slate-950/40 text-slate-500'
+                        : 'border-slate-700/80 bg-slate-900/60 text-slate-300';
                 const status = isCurrent ? ' • en cours' : isDone ? ' • passé' : '';
-                return `<div class="stage ${tone}">
-                    <div class="stage-name">${focusLabel(stage.key)}${status}</div>
-                    <div class="stage-line">Début : ${formatMinutes(stage.startSec)}</div>
-                    <div class="stage-line">Rampe ${formatMinutes(stage.rampSecs)} + stabilisation ${formatMinutes(stage.holdSecs)}</div>
+                return `<div class="p-2.5 rounded-lg border ${tone}">
+                    <div class="text-[11px] font-mono font-semibold">${focusLabel(stage.key)}${status}</div>
+                    <div class="text-[11px] font-mono opacity-80 mt-0.5">Début : ${formatMinutes(stage.startSec)}</div>
+                    <div class="text-[11px] font-mono opacity-80">Rampe ${formatMinutes(stage.rampSecs)} + stabilisation ${formatMinutes(stage.holdSecs)}</div>
                 </div>`;
             }).join('');
         }
@@ -1608,10 +1942,10 @@
         function setPrepMinutes(minutes) {
             state.prepMinutes = minutes;
             document.querySelectorAll('.prep-btn').forEach(btn => {
-                btn.className = "prep-btn seg";
+                btn.className = "prep-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white border border-transparent transition whitespace-nowrap";
             });
             document.getElementById(`prep-${minutes}`).className =
-                "prep-btn seg on";
+                "prep-btn px-3 py-1.5 rounded-lg bg-slate-800 text-cyan-300 font-medium border border-cyan-500/30 transition whitespace-nowrap";
 
             if (isPlaying) {
                 setSessionNote('Le nouveau sas s\'appliquera à la prochaine session.');
@@ -1822,10 +2156,10 @@
             const statusBadge = document.getElementById('audio-status-badge');
             if (audioCtx.state === 'running') {
                 statusBadge.textContent = "SYNCHRONISATION ACTIVE";
-                statusBadge.className = "badge on";
+                statusBadge.className = "px-2 py-0.5 text-[10px] font-mono rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60";
             } else {
                 statusBadge.textContent = "AUDIO SUSPENDU PAR LE SYSTÈME";
-                statusBadge.className = "badge warn";
+                statusBadge.className = "px-2 py-0.5 text-[10px] font-mono rounded bg-amber-950 text-amber-300 border border-amber-700/60";
                 audioCtx.resume().catch(() => {});
             }
         }
@@ -2024,7 +2358,7 @@
             const focus = state.selectedFocus;
             document.getElementById('session-minutes').value = state.timerMinutes;
             document.getElementById('session-hint').textContent =
-                `${profileNamesTheSession() ? 'Minimum' : `${focusLabel(focus)}${state.ascentEnabled ? ' en ascension' : ''} : minimum`} ${minSessionMinutes(focus)} min${state.prepMinutes ? ` • Sas de ${state.prepMinutes} min en plus` : ''}`;
+                `${focusLabel(focus)}${state.ascentEnabled ? ' en ascension' : ''} : minimum ${minSessionMinutes(focus)} min${state.prepMinutes ? ` • Sas de ${state.prepMinutes} min en plus` : ''}`;
             document.getElementById('session-reco-btn').textContent = `Conseillé : ${recommendedSessionMinutes(focus)} min`;
             updateTimerDisplay();
             updateTransportUI();
@@ -2040,8 +2374,8 @@
             const secs = shown % 60;
             const clock = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-            display.textContent = clock;
-            const displayClass = `timer${prepLeft > 0 ? ' prep' : ''}`;
+            display.textContent = prepLeft > 0 ? `Préparation - ${clock}` : clock;
+            const displayClass = `font-mono text-xl font-semibold whitespace-nowrap ${prepLeft > 0 ? 'text-amber-300' : 'text-cyan-400'}`;
             if (display.className !== displayClass) display.className = displayClass;
         }
 
@@ -2178,10 +2512,11 @@
             state.ascentEnabled = settings.ascentEnabled;
             updateAscentButton();
             state.selectedFocus = settings.selectedFocus;
-            highlightFocusCard(settings.ascentEnabled ? settings.selectedFocus : null);
+            highlightFocusCard(settings.selectedFocus);
             setSessionNote('');
             state.timerMinutes = settings.sessionMinutes;
             state.remainingSeconds = settings.sessionMinutes * 60;
+            state.pausedPrepSeconds = null;
 
             if (state.ascentEnabled) {
                 // In ascent, each stage brings its own settings: the profile keeps target and duration
@@ -2256,7 +2591,6 @@
                 select.appendChild(option);
             });
             select.value = profiles.some(profile => profile.name === selectedName) ? selectedName : '';
-            syncQuickProfiles();
         }
 
         function sortProfiles() {
@@ -2311,14 +2645,11 @@
                 return;
             }
             if (isPlaying) {
-                setProfileNote('Mettez la session en pause pour charger un profil : le changement serait trop brusque.');
-                setSessionNote('Mettez la session en pause pour charger un profil.');
+                setProfileNote('Quittez la phase pour charger un profil : le changement serait trop brusque en pleine session.');
                 return;
             }
             const abandoned = sessionInProgress();
-            activeProfileName = profile.name;
             applyProfileSettings(profile.settings);
-            syncQuickProfiles();
             syncSessionUI();
             if (abandoned) setSessionNote('Session en pause abandonnée : le prochain départ sera une nouvelle session.');
             setProfileNote(`Profil « ${profile.name} » chargé.`);
@@ -2442,16 +2773,18 @@
             state.breathingActive = !state.breathingActive;
             const btn = document.getElementById('breath-toggle-btn');
             if (state.breathingActive) {
-                setSwitch(btn, true);
+                btn.textContent = "Guide Actif";
+                btn.className = "text-xs font-mono px-2.5 py-1 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800";
             } else {
-                setSwitch(btn, false);
+                btn.textContent = "Guide Pause";
+                btn.className = "text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700";
             }
         }
 
         // V2.8.1: in light mode the oscilloscope stops and the breathing guide is redrawn less often
         function renderLoop(timestamp) {
-            if (!lightMode && advancedOpen) drawOscilloscope();
-            if (advancedOpen && (!lightMode || timestamp - lastBreathPaint >= LIGHT_BREATH_PAINT_MS)) {
+            if (!lightMode) drawOscilloscope();
+            if (!lightMode || timestamp - lastBreathPaint >= LIGHT_BREATH_PAINT_MS) {
                 lastBreathPaint = timestamp;
                 updateBreathingGuide(timestamp);
             }
@@ -2465,7 +2798,7 @@
             ctx.clearRect(0, 0, width, height);
 
             // Subtle Grid Background
-            ctx.strokeStyle = 'rgba(58, 64, 70, 0.5)';
+            ctx.strokeStyle = 'rgba(30, 41, 59, 0.55)';
             ctx.lineWidth = 1;
             const step = 32;
             for (let x = 0; x < width; x += step) {
@@ -2482,7 +2815,7 @@
             }
 
             // Center Zero-Crossing Line
-            ctx.strokeStyle = 'rgba(58, 64, 70, 0.9)';
+            ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
             ctx.beginPath();
             ctx.moveTo(0, height / 2);
             ctx.lineTo(width, height / 2);
@@ -2497,7 +2830,7 @@
 
             // 1. Draw Binaural Interference Envelope (Standing Wave Envelope)
             if (state.currentBeatFreq > 0) {
-                ctx.fillStyle = 'rgba(157, 191, 180, 0.07)';
+                ctx.fillStyle = 'rgba(251, 191, 36, 0.08)';
                 ctx.beginPath();
                 for (let x = 0; x <= width; x += 3) {
                     const normX = x / width;
@@ -2517,7 +2850,7 @@
             }
 
             // 2. Left Ear Wave (Cyan + Isochronic Envelope if active)
-            ctx.strokeStyle = isPlaying ? '#9DBFB4' : 'rgba(157, 191, 180, 0.45)';
+            ctx.strokeStyle = isPlaying ? '#22d3ee' : 'rgba(34, 211, 238, 0.45)';
             ctx.lineWidth = 2;
             ctx.beginPath();
             for (let x = 0; x < width; x++) {
@@ -2532,7 +2865,7 @@
             ctx.stroke();
 
             // 3. Right Ear Wave (Amber - Phase shifted by Binaural Beat)
-            ctx.strokeStyle = isPlaying ? '#C9CDD1' : 'rgba(201, 205, 209, 0.45)';
+            ctx.strokeStyle = isPlaying ? '#fbbf24' : 'rgba(251, 191, 36, 0.45)';
             ctx.lineWidth = 2;
             ctx.beginPath();
             for (let x = 0; x < width; x++) {
@@ -2549,7 +2882,7 @@
 
             // 4. Next-Gen 40 Hz Gamma Ripple Overlay (Purple High-Frequency Trace)
             if (state.gammaActive) {
-                ctx.strokeStyle = isPlaying ? 'rgba(217, 190, 140, 0.75)' : 'rgba(217, 190, 140, 0.35)';
+                ctx.strokeStyle = isPlaying ? 'rgba(192, 132, 252, 0.75)' : 'rgba(192, 132, 252, 0.35)';
                 ctx.lineWidth = 1.3;
                 ctx.beginPath();
                 const gammaAmp = amp * state.gammaDepth * 0.75;
@@ -2584,18 +2917,18 @@
                     scale = 0.70 + (0.60 * Math.sin(progress * (Math.PI / 2)));
                     phaseTimeRemaining = 4.0 - elapsed;
                     phaseLabel.textContent = "1. Inspirez lentement par le nez...";
-                    phaseLabel.className = "breath-label";
+                    phaseLabel.className = "text-sm font-semibold text-cyan-300";
                 } else if (elapsed < 6.0) {
                     scale = 1.30;
                     phaseTimeRemaining = 6.0 - elapsed;
                     phaseLabel.textContent = "2. Suspension calme (esprit clair)...";
-                    phaseLabel.className = "breath-label";
+                    phaseLabel.className = "text-sm font-semibold text-purple-300";
                 } else {
                     const progress = (elapsed - 6.0) / 6.0;
                     scale = 1.30 - (0.60 * Math.sin(progress * (Math.PI / 2)));
                     phaseTimeRemaining = 12.0 - elapsed;
                     phaseLabel.textContent = "3. Expirez longuement (relâchez le corps physique)...";
-                    phaseLabel.className = "breath-label";
+                    phaseLabel.className = "text-sm font-semibold text-emerald-300";
                 }
 
                 circle.style.transform = `scale(${scale.toFixed(3)})`;
@@ -2622,14 +2955,16 @@
             document.body.classList.toggle('light-mode', enabled);
 
             const btn = document.getElementById('btn-light-mode');
-            setSwitch(btn, enabled);
+            btn.textContent = enabled ? 'ACTIF' : 'OFF';
+            btn.className = enabled
+                ? 'px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 transition'
+                : 'px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-400 border border-slate-600 transition';
 
             if (enabled) ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function toggleLightMode() {
             applyLightMode(!lightMode);
-            if (!lightMode && advancedOpen) resizeCanvas();
             try {
                 localStorage.setItem(LIGHT_MODE_KEY, lightMode ? 'on' : 'off');
             } catch (error) {
@@ -2638,120 +2973,58 @@
             logSessionEvent('Mode léger', lightMode ? 'activé' : 'désactivé');
         }
 
-        // ============================================================================
-        // V3 INTERFACE: simple and advanced views, session area, loaded profile
-        // ============================================================================
-        const ADVANCED_VIEW_KEY = 'entreEnPhase.advancedView.v1';
-        const HORIZON_NAMES = { focus10: 'Repos éveillé', focus12: 'Perception élargie', focus15: 'Hors du temps', focus21: 'Le Seuil' };
-        let activeProfileName = null; // A loaded personal profile: its settings no longer match a Horizon's name
-        let advancedOpen = false;
-
-        function setSwitch(btn, isOn) {
-            btn.classList.toggle('on', isOn);
-            btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
-        }
-
-        function profileNamesTheSession() {
-            return activeProfileName !== null && !state.ascentEnabled;
-        }
-
-        function currentSoundLabel() {
-            return profileNamesTheSession() ? activeProfileName : focusLabel(state.currentFocus);
-        }
-
-        function refreshSessionView() {
-            const running = sessionInProgress();
-            const preparing = inPrep() || (!isPlaying && state.pausedPrepSeconds !== null);
-            const focus = running ? state.currentFocus : state.selectedFocus;
-            const focusTitle = `${focusLabel(focus)} : ${HORIZON_NAMES[focus]}`;
-
-            document.body.classList.toggle('in-session', running);
-            if (!running) document.body.classList.remove('show-setup');
-
-            document.getElementById('session-title').textContent = preparing
-                ? 'Préparation'
-                : (profileNamesTheSession() ? `Profil : ${activeProfileName}` : focusTitle);
-
-            let sub = '';
-            if (preparing) {
-                const destination = state.ascentEnabled ? ` vers ${HORIZON_NAMES[state.selectedFocus]}` : '';
-                sub = `Puis ${state.timerMinutes} min${destination}`;
-            } else if (running && state.ascentEnabled && state.selectedFocus !== state.currentFocus) {
-                sub = `Vers ${focusLabel(state.selectedFocus)} : ${HORIZON_NAMES[state.selectedFocus]}`;
-            }
-            document.getElementById('session-sub').textContent = sub;
-
-            const dots = document.getElementById('session-dots');
-            dots.classList.toggle('hidden', !(running && state.ascentEnabled));
-            const reached = FOCUS_ORDER.indexOf(state.currentFocus);
-            dots.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('on', i <= reached));
-
-            const message = document.getElementById('session-message');
-            message.classList.toggle('hidden', !isPlaying);
-            message.textContent = preparing
-                ? 'Installez-vous et fermez les yeux. Selon votre téléphone, l\'écran peut s\'éteindre.'
-                : 'Selon votre téléphone, l\'écran peut s\'éteindre.';
-        }
-
-        function toggleSetupDuringSession() {
-            document.body.classList.toggle('show-setup');
-        }
-
-        function applyAdvancedView(open) {
-            advancedOpen = open;
-            document.body.classList.toggle('advanced-open', open);
-            if (open) resizeCanvas();
-        }
-
-        function toggleAdvanced() {
-            applyAdvancedView(!advancedOpen);
-            try {
-                localStorage.setItem(ADVANCED_VIEW_KEY, advancedOpen ? 'on' : 'off');
-            } catch (error) {
-                // Only the choice is lost, for the next visit
-            }
-            window.scrollTo(0, 0);
-        }
-
-        function initAdvancedView() {
-            let saved = null;
-            try {
-                saved = localStorage.getItem(ADVANCED_VIEW_KEY);
-            } catch (error) {
-                saved = null;
-            }
-            applyAdvancedView(saved === 'on');
-        }
-
-        // The header list mirrors the one in the advanced settings
-        function syncQuickProfiles() {
-            const source = document.getElementById('profile-select');
-            const quick = document.getElementById('quick-profile');
-            quick.textContent = '';
-            [...source.options].forEach(option => {
-                const copy = document.createElement('option');
-                copy.value = option.value;
-                copy.textContent = option.value ? option.textContent : (source.options.length > 1 ? 'Choisir un profil' : 'Aucun profil');
-                quick.appendChild(copy);
-            });
-            quick.value = activeProfileName !== null ? activeProfileName : source.value;
-            if (activeProfileName === null) quick.value = '';
-        }
-
-        function quickProfileChosen(quick) {
-            const source = document.getElementById('profile-select');
-            source.value = quick.value;
-            onProfileSelected();
-            if (quick.value) loadSelectedProfile();
-            syncQuickProfiles();
-        }
-
         // The application stays on the device once this has been opened with a network
         function registerServiceWorker() {
             if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-            navigator.serviceWorker.register('service-worker.js').catch(error => {
+            navigator.serviceWorker.register(SERVICE_WORKER_URL, { scope: SERVICE_WORKER_SCOPE }).catch(error => {
                 logSessionEvent('Hors ligne', `installation impossible : ${error.message}`);
             });
+        }
+
+        const SERVICE_WORKER_URL = 'service-worker.js';
+        const SERVICE_WORKER_SCOPE = './';
+
+        // Only some browsers let a page open their install dialog: the others get directions
+        let deferredInstallPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            deferredInstallPrompt = event;
+        });
+
+        window.addEventListener('appinstalled', () => {
+            deferredInstallPrompt = null;
+            document.getElementById('install-btn').classList.add('hidden');
+            showInstallHelp('');
+        });
+
+        function showInstallHelp(text) {
+            const help = document.getElementById('install-help');
+            help.textContent = text;
+            help.classList.toggle('hidden', !text);
+        }
+
+        function installDirections() {
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                return 'Sur iPhone, ouvrez cette page dans Safari, touchez Partager, puis « Sur l\'écran d\'accueil ».';
+            }
+            return 'Ouvrez cette page directement dans votre navigateur, pas depuis WhatsApp ou une autre application. Dans le menu du navigateur, choisissez ensuite « Installer l\'application » ou « Ajouter à l\'écran d\'accueil ». Si aucune de ces options n\'apparaît, la page reste utilisable telle quelle.';
+        }
+
+        async function installApplication() {
+            if (!deferredInstallPrompt) {
+                showInstallHelp(installDirections());
+                return;
+            }
+            const prompt = deferredInstallPrompt;
+            deferredInstallPrompt = null;
+            prompt.prompt();
+            await prompt.userChoice;
+        }
+
+        function hideInstallWhenInstalled() {
+            const installed = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+            document.getElementById('install-btn').classList.toggle('hidden', installed);
         }
 
         window.onload = function () {
@@ -2762,8 +3035,8 @@
             setupMediaSession();
             initSessionLog();
             registerServiceWorker();
+            hideInstallWhenInstalled();
             applyLightMode(readLightModeChoice());
-            initAdvancedView();
             updateReadouts();
             requestAnimationFrame(renderLoop);
         };

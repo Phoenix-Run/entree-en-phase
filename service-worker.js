@@ -1,7 +1,7 @@
 // Keeps the whole application on the device so that it works without a network.
 // Change CACHE_NAME with each release: the new files then replace the old ones
 // once every open window of the application has been closed, never during a session.
-const CACHE_NAME = 'entree-en-phase-v3.1';
+const CACHE_NAME = 'entree-en-phase-v2.9.1';
 
 const APP_FILES = [
     './',
@@ -10,7 +10,12 @@ const APP_FILES = [
     './manuel.pdf',
     './icons/icon-192.png',
     './icons/icon-512.png',
-    './fonts/DMSans-latin.woff2'
+    './fonts/Inter-latin.woff2',
+    './fonts/JetBrainsMono-latin.woff2',
+    './en/',
+    './en/index.html',
+    './en/manifest.json',
+    './en/manual.pdf'
 ];
 
 self.addEventListener('install', event => {
