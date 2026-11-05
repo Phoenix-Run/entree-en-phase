@@ -1,6 +1,6 @@
 {
-  "name": "Entrée en Phase",
-  "short_name": "Entrée en Phase",
+  "name": "Phase Entry",
+  "short_name": "Phase Entry",
   "description": "Experimental tool for sound exploration with binaural beats.",
   "lang": "en",
   "start_url": "./",

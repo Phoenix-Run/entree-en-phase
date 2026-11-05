@@ -36,7 +36,7 @@ Les polices Inter et JetBrains Mono sont distribuées sous licence SIL Open Font
 
 ---
 
-# Entrée en Phase (English)
+# Phase Entry (English)
 
 Experimental tool for sound exploration with binaural beats. It runs in the browser and installs as an application.
 

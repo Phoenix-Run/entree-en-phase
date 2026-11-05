@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrée en Phase Neuro-Acoustic Console • V2.9.1</title>
+    <title>Phase Entry Neuro-Acoustic Console • V2.9.1</title>
     <meta name="theme-color" content="#060a12">
     <meta name="description" content="Experimental tool for sound exploration with binaural beats.">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="../icons/icon-192.png">
     <link rel="apple-touch-icon" href="../icons/icon-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Entrée en Phase">
+    <meta name="apple-mobile-web-app-title" content="Phase Entry">
     <style>
         @font-face {
             font-family: 'Inter';
@@ -134,7 +134,7 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-base sm:text-lg font-semibold tracking-tight text-white">Entrée en Phase Neuro-Acoustic Console • V2.9.1</h1>
+                        <h1 class="text-base sm:text-lg font-semibold tracking-tight text-white">Phase Entry Neuro-Acoustic Console • V2.9.1</h1>
                         <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-purple-950 text-purple-300 border border-purple-700/60">
                             EXPERIMENTAL TOOL
                         </span>
@@ -1228,7 +1228,7 @@
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: inPrep() ? `Preparation • ${focusLabel(state.currentFocus)}` : focusLabel(state.currentFocus),
                     artist: 'Neuro-Acoustic Console',
-                    album: `Entrée en Phase ${APP_VERSION}`,
+                    album: `Phase Entry ${APP_VERSION}`,
                     artwork: [{ src: APP_ICON, sizes: '512x512', type: 'image/png' }]
                 });
             }
@@ -2679,12 +2679,12 @@
             const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'profiles_entree_en_phase.json';
+            link.download = 'profiles_phase_entry.json';
             document.body.appendChild(link);
             link.click();
             link.remove();
             URL.revokeObjectURL(url);
-            setProfileNote(`${profiles.length} profile(s) exported to profiles_entree_en_phase.json.`);
+            setProfileNote(`${profiles.length} profile(s) exported to profiles_phase_entry.json.`);
         }
 
         function freeProfileName(name) {

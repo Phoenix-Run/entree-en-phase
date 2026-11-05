@@ -1,7 +1,7 @@
 // Keeps the whole application on the device so that it works without a network.
 // Change CACHE_NAME with each release: the new files then replace the old ones
 // once every open window of the application has been closed, never during a session.
-const CACHE_NAME = 'entree-en-phase-v2.9.1';
+const CACHE_NAME = 'entree-en-phase-v2.9.1-b';
 
 const APP_FILES = [
     './',
