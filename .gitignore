@@ -1,0 +1,3 @@
+# Personal settings exported from the app: never publish them
+*.json
+!manifest.json

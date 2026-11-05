@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrée en Phase • V3.1</title>
+    <meta name="theme-color" content="#1C1F22">
+    <meta name="description" content="Outil expérimental d'exploration sonore par battements binauraux.">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Entrée en Phase">
+    <style>
+        @font-face {
+            font-family: 'DM Sans';
+            font-style: normal;
+            font-weight: 100 1000;
+            font-display: swap;
+            src: url(fonts/DMSans-latin.woff2) format('woff2');
+        }
+        :root {
+            --ground: #1C1F22;
+            --panel: #25292D;
+            --raised: #2E3338;
+            --line: #3A4046;
+            --ink: #E8E9EA;
+            --muted: #A7ADB3;
+            --accent: #9DBFB4;
+            --on-accent: #16191B;
+            --amber: #D9BE8C;
+        }
+        * { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            margin: 0;
+            background: var(--ground);
+            color: var(--ink);
+            font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        button, input, select, textarea { font: inherit; color: inherit; }
+        button { cursor: pointer; }
+        button:disabled { cursor: not-allowed; }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        h1, h2, h3, p { margin: 0; }
+        .hidden { display: none !important; }
+        .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+        .page { max-width: 1200px; margin: 0 auto; padding: 28px 40px 40px; }
+        .muted { color: var(--muted); }
+        .label { font-size: 13px; color: var(--muted); }
+        .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .panel { background: var(--panel); border-radius: 16px; padding: 20px 22px; min-width: 0; }
+        .panel-title { font-size: 15px; font-weight: 600; }
+        .values { font-variant-numeric: tabular-nums; }
+
+        /* Header */
+        .brand { font-size: 20px; font-weight: 600; line-height: 1.3; }
+        .profile-quick { display: flex; align-items: center; gap: 10px; }
+        .field {
+            min-height: 44px; padding: 0 14px; max-width: 100%;
+            border: 1px solid var(--line); border-radius: 22px;
+            background: var(--ground);
+        }
+        .field-grow { flex: 1; min-width: 0; }
+
+        /* Session area */
+        .session { display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 24px; }
+        .timer { font-size: 88px; font-weight: 500; line-height: 1.08; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+        .timer.prep { color: var(--amber); }
+        .session-sub { min-height: 22px; color: var(--muted); }
+        .dots { display: flex; gap: 10px; margin-top: 12px; }
+        .dot { width: 12px; height: 12px; border-radius: 6px; background: var(--line); }
+        .dot.on { background: var(--accent); }
+        .session-message { margin-top: 12px; max-width: 460px; color: var(--muted); }
+        .transport { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 18px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 28px; border-radius: 26px; border: 1px solid transparent; font-size: 16px; font-weight: 600; }
+        .btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .btn-primary { min-width: 220px; background: var(--accent); color: var(--on-accent); }
+        .btn-pause { min-width: 220px; background: var(--line); color: var(--ink); }
+        .btn-stop { background: transparent; border-color: var(--line); color: var(--ink); font-weight: 500; }
+        .btn-stop:disabled { color: var(--muted); opacity: .6; }
+        .session-note { min-height: 22px; margin-top: 10px; color: var(--amber); font-size: 14px; }
+        .session-settings-link { display: none; }
+
+        /* Setup */
+        .section-title { margin: 28px 0 12px; font-size: 15px; font-weight: 500; color: var(--muted); }
+        .horizons { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .protocol-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; width: 100%; padding: 18px 20px; text-align: left; background: var(--panel); border: 1px solid var(--panel); border-radius: 16px; }
+        .protocol-card:hover { border-color: var(--line); }
+        .protocol-card.active-protocol { border-color: var(--accent); background: var(--raised); }
+        .horizon-name { display: block; margin: 2px 0 6px; font-size: 18px; font-weight: 600; line-height: 1.3; }
+        .horizon-line { display: block; color: var(--muted); font-size: 14px; }
+        .settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+        .stepper { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 8px; }
+        .stepper .step:last-child { margin-left: auto; } .step { width: 44px; height: 44px; flex: none; border: 1px solid var(--line); border-radius: 22px; background: transparent; }
+        .stepper input { flex: 1; width: 100%; min-width: 0; max-width: 64px; min-height: 44px; margin-left: auto; border: 0; background: transparent; text-align: center; font-size: 22px; font-weight: 500; appearance: textfield; -moz-appearance: textfield; }
+        .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .reco { flex: none; white-space: nowrap; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 16px; background: transparent; color: var(--muted); font-size: 13px; }
+        .seg-group { display: flex; gap: 8px; margin: 12px 0 8px; }
+        .seg { flex: 1; min-height: 44px; padding: 0 8px; border: 1px solid var(--line); border-radius: 22px; background: transparent; color: var(--muted); white-space: nowrap; }
+        .seg.on { background: var(--line); color: var(--ink); }
+        .switch { position: relative; width: 52px; height: 30px; flex: none; border: 0; border-radius: 15px; background: var(--line); padding: 0; }
+        .switch::before { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 12px; background: var(--muted); }
+        .switch.on { background: var(--accent); }
+        .switch.on::before { left: 25px; background: var(--on-accent); }
+        .ascent-timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+        .stage { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; color: var(--muted); }
+        .stage.current { border-color: var(--accent); color: var(--ink); }
+        .stage.done { opacity: .6; }
+        .stage-name { font-weight: 600; color: var(--ink); }
+        .page-end { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; margin-top: 22px; }
+        .notice { flex: 1 1 360px; color: var(--muted); font-size: 13px; }
+        .page-links { display: flex; flex-wrap: wrap; gap: 10px; } .link-button { display: inline-flex; align-items: center; color: var(--ink); text-decoration: none; } .btn-quiet { min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 22px; background: transparent; }
+
+        /* Advanced settings */
+        .advanced { display: none; margin-top: 24px; }
+        .advanced-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+        .advanced-grid .wide { grid-column: 1 / -1; }
+        .advanced h2 { font-size: 22px; font-weight: 600; }
+        .big-value { font-size: 20px; font-variant-numeric: tabular-nums; }
+        input[type=range] { width: 100%; height: 28px; margin: 4px 0; accent-color: var(--accent); background: transparent; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .chip { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 22px; background: transparent; color: var(--muted); }
+        .chip.on, .chip.active-preset, .chip.active-binaural { background: var(--line); color: var(--ink); }
+        .stack { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+        .slider-line { display: flex; align-items: center; gap: 12px; }
+        .slider-line .label { flex: none; width: 76px; }
+        .slider-line .values { flex: none; min-width: 58px; text-align: right; }
+        .module { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+        .module:last-child { padding-bottom: 0; border-bottom: 0; }
+        .module.active-module-card .module-name { color: var(--accent); }
+        .ramp-track { height: 6px; margin-top: 10px; overflow: hidden; border-radius: 3px; background: var(--line); }
+        .ramp-fill { width: 0; height: 100%; background: var(--accent); }
+        .scope { position: relative; height: 170px; margin-top: 12px; overflow: hidden; border-radius: 12px; background: var(--ground); }
+        .scope canvas { display: block; width: 100%; height: 100%; }
+        body.light-mode .scope { display: none; }
+        .scope-tags { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+        .tag { padding: 1px 8px; border-radius: 10px; background: var(--raised); color: var(--muted); font-size: 12px; }
+        .readouts { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+        .badge { padding: 2px 10px; border-radius: 11px; background: var(--raised); color: var(--muted); font-size: 12px; }
+        .badge.on { color: var(--accent); }
+        .badge.warn { color: var(--amber); }
+        .breath { display: flex; align-items: center; gap: 20px; margin-top: 14px; }
+        .breath-ring { position: relative; display: flex; align-items: center; justify-content: center; width: 96px; height: 96px; flex: none; }
+        #breath-outer-ring { position: absolute; inset: 0; border: 2px solid var(--line); border-radius: 50%; }
+        #breath-circle { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: var(--line); }
+        #breath-timer { font-size: 12px; font-variant-numeric: tabular-nums; }
+        .breath-label { font-weight: 600; }
+        .log { width: 100%; height: 160px; margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--ground); color: var(--muted); font: 13px/1.5 ui-monospace, Consolas, monospace; resize: vertical; }
+        .profile-note { min-height: 20px; margin-top: 8px; color: var(--amber); font-size: 14px; }
+        .file-button { display: inline-flex; align-items: center; cursor: pointer; }
+
+        /* Advanced view: compact session bar, setup hidden */
+        body.advanced-open .advanced { display: block; }
+        body.advanced-open .setup { display: none; }
+        body.advanced-open .session { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 20px; margin-top: 16px; text-align: left; }
+        body.advanced-open .timer { font-size: 40px; }
+        body.advanced-open .dots, body.advanced-open .session-message, body.advanced-open .session-sub { display: none; }
+        body.advanced-open .transport { margin-top: 0; }
+        body.advanced-open .btn { min-height: 48px; }
+        body.advanced-open .session-note { flex-basis: 100%; text-align: center; margin-top: 0; }
+        @media (min-width: 768px) {
+            body.advanced-open .session-bar { position: sticky; top: 0; z-index: 10; margin: 0 -40px; padding: 8px 40px 10px; background: var(--ground); border-bottom: 1px solid var(--line); }
+        }
+
+        /* Light mode: nothing moves except the sound */
+        body.light-mode * { animation: none !important; transition: none !important; }
+
+        @media (max-width: 1000px) {
+            .horizons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .settings, .advanced-grid { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 767px) {
+            .page { padding: 20px 16px 28px; }
+            .brand { font-size: 18px; }
+            .timer { font-size: 72px; }
+            .horizons { gap: 10px; }
+            .protocol-card { padding: 14px 16px; }
+            .horizon-name { margin-bottom: 0; font-size: 16px; }
+            .horizon-line { display: none; }
+            .ascent-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .btn { min-height: 56px; }
+            .transport { width: 100%; flex-wrap: nowrap; }
+            .btn-primary, .btn-pause { flex: 1; min-width: 0; padding: 0 16px; }
+            .btn-stop { padding: 0 20px; }
+            .profile-quick .label { display: none; }
+            .profile-quick .field { max-width: 170px; }
+            .breath { align-items: flex-start; }
+            /* During a session the phone shows only the essential */
+            body.in-session:not(.show-setup):not(.advanced-open) .setup { display: none; }
+            body.in-session:not(.show-setup):not(.advanced-open) .page { min-height: 100svh; display: flex; flex-direction: column; }
+            body.in-session:not(.show-setup):not(.advanced-open) .session-bar { flex: 1; display: flex; flex-direction: column; } body.in-session:not(.show-setup):not(.advanced-open) .session { flex: 1; justify-content: center; }
+            body.in-session .session-settings-link { display: block; margin: 20px auto 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="row">
+        <div>
+            <h1 class="brand">Entrée en Phase</h1>
+            <div class="label">Outil expérimental • V3.1</div>
+        </div>
+        <label class="profile-quick">
+            <span class="label">Profil</span>
+            <select id="quick-profile" class="field" onchange="quickProfileChosen(this)" aria-label="Choisir un profil"></select>
+        </label>
+    </header>
+
+    <div class="session-bar">
+        <section class="session" aria-label="Session">
+            <div>
+                <div id="session-title" class="muted">Horizon 1 : Repos éveillé</div>
+                <div id="timer-display" class="timer" role="timer">30:00</div>
+            </div>
+            <div id="session-sub" class="session-sub"></div>
+            <div id="session-dots" class="dots hidden" role="img" aria-label="Horizon en cours">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <p id="session-message" class="session-message hidden"></p>
+            <div class="transport">
+                <button id="master-play-btn" onclick="toggleAudioEngine()" class="btn btn-primary">
+                    <svg id="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pause-icon" class="hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                    <span id="play-btn-text">Entrer en Phase</span>
+                </button>
+                <button id="stop-session-btn" onclick="stopSession()" disabled class="btn btn-stop">Arrêter</button>
+            </div>
+            <div id="session-note" class="session-note" role="status"></div>
+            <button class="btn-quiet session-settings-link" onclick="toggleSetupDuringSession()">Afficher les réglages</button>
+        </section>
+    </div>
+
+    <div class="setup">
+        <h2 class="section-title">Choisissez votre horizon</h2>
+        <div class="horizons">
+            <button onclick="applyProtocol('focus10', false)" id="proto-focus10" class="protocol-card active-protocol"><span class="label">Horizon 1</span><span class="horizon-name">Repos éveillé</span><span class="horizon-line">Corps au repos, esprit présent.</span></button>
+            <button onclick="applyProtocol('focus12', false)" id="proto-focus12" class="protocol-card"><span class="label">Horizon 2</span><span class="horizon-name">Perception élargie</span><span class="horizon-line">Attention ouverte et imagerie intérieure.</span></button>
+            <button onclick="applyProtocol('focus15', false)" id="proto-focus15" class="protocol-card"><span class="label">Horizon 3</span><span class="horizon-name">Hors du temps</span><span class="horizon-line">Silence intérieur, repères qui s'effacent.</span></button>
+            <button onclick="applyProtocol('focus21', false)" id="proto-focus21" class="protocol-card"><span class="label">Horizon 4</span><span class="horizon-name">Le Seuil</span><span class="horizon-line">Exploration hors du corps.</span></button>
+        </div>
+
+        <div class="settings">
+            <div class="panel">
+                <div class="panel-title">Durée</div>
+                <div class="stepper">
+                    <button class="step" onclick="nudgeSession(-5)" aria-label="Réduire la session de 5 minutes">−5</button>
+                    <input id="session-minutes" type="number" min="10" max="180" step="1" value="30" aria-label="Durée de session en minutes" onchange="setTimerDuration(this.value)">
+                    <span class="muted">min</span>
+                    <button class="step" onclick="nudgeSession(5)" aria-label="Allonger la session de 5 minutes">+5</button>
+                </div>
+                <div class="row">
+                    <span id="session-hint" class="label"></span>
+                    <button id="session-reco-btn" class="reco" onclick="applyRecommendedDuration()"></button>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-title">Sas d'installation</div>
+                <div class="seg-group" role="group" aria-label="Sas d'installation">
+                    <button onclick="setPrepMinutes(0)" id="prep-0" class="prep-btn seg on">Aucun</button>
+                    <button onclick="setPrepMinutes(2)" id="prep-2" class="prep-btn seg">2 min</button>
+                    <button onclick="setPrepMinutes(5)" id="prep-5" class="prep-btn seg">5 min</button>
+                </div>
+                <div class="label">Le temps de vous installer, avec le bruit rose seul.</div>
+            </div>
+            <div class="panel">
+                <div class="row">
+                    <div class="panel-title">Ascension progressive</div>
+                    <button id="btn-ascent" class="switch" onclick="toggleAscent()" aria-pressed="false" aria-label="Ascension progressive"></button>
+                </div>
+                <div class="label" style="margin-top: 14px">Traverse chaque horizon jusqu'à celui que vous avez choisi, avec un temps de stabilisation à chacun.</div>
+            </div>
+        </div>
+        <div id="ascent-timeline" class="ascent-timeline hidden"></div>
+
+        <div class="page-end">
+            <div class="page-links"><button class="btn-quiet" onclick="toggleAdvanced()">Réglages avancés</button> <a class="btn-quiet link-button" href="manuel.pdf" target="_blank" rel="noopener">Manuel</a></div>
+            <p class="notice">Outil expérimental : aucun résultat n'est promis, les effets dépendent de la sensibilité de chacun. Déconseillé aux personnes sujettes à l'épilepsie photosensible ou auditive. Ne jamais utiliser en conduisant.</p>
+        </div>
+    </div>
+
+    <div class="advanced">
+        <div class="row">
+            <h2>Réglages avancés</h2>
+            <button class="btn-quiet" onclick="toggleAdvanced()">Revenir à la vue simple</button>
+        </div>
+
+        <div class="advanced-grid">
+            <section class="panel">
+                <div class="panel-title">Fréquence porteuse</div>
+                <div class="row" style="margin-top: 10px">
+                    <label class="label" for="carrier-slider">Hauteur du son</label>
+                    <span class="big-value"><span id="carrier-display">100.0</span> Hz</span>
+                </div>
+                <input id="carrier-slider" type="range" min="50" max="450" step="0.5" value="100" oninput="setCarrierFrequency(this.value, false)">
+                <div class="chips">
+                    <button onclick="setCarrierFrequency(100, true)" id="freq-btn-100" class="freq-preset-btn chip active-preset">100</button>
+                    <button onclick="setCarrierFrequency(111, true)" id="freq-btn-111" class="freq-preset-btn chip">111</button>
+                    <button onclick="setCarrierFrequency(128, true)" id="freq-btn-128" class="freq-preset-btn chip">128</button>
+                    <button onclick="setCarrierFrequency(136.1, true)" id="freq-btn-136" class="freq-preset-btn chip">136,1</button>
+                    <button onclick="setCarrierFrequency(200, true)" id="freq-btn-200" class="freq-preset-btn chip">200</button>
+                    <button onclick="setCarrierFrequency(432, true)" id="freq-btn-432" class="freq-preset-btn chip">432</button>
+                    <button onclick="nudgeCarrier(-0.5)" class="chip" aria-label="Baisser de 0,5 Hz">−0,5</button>
+                    <button onclick="nudgeCarrier(0.5)" class="chip" aria-label="Monter de 0,5 Hz">+0,5</button>
+                </div>
+                <p id="clinical-title" class="label" style="margin-top: 14px; font-weight: 600"></p>
+                <p id="clinical-desc" class="label"></p>
+            </section>
+
+            <section class="panel">
+                <div class="panel-title">Battement binaural</div>
+                <div class="row" style="margin-top: 10px">
+                    <label class="label" for="beat-slider">Écart entre les oreilles</label>
+                    <span class="big-value"><span id="beat-display">4.0</span> Hz</span>
+                </div>
+                <input id="beat-slider" type="range" min="0.5" max="14" step="0.1" value="4.0" oninput="setBinauralBeat(this.value, false)">
+                <div class="chips">
+                    <button onclick="setBinauralBeat(1.5, true)" id="beat-btn-1.5" class="binaural-preset-btn chip">1,5 Delta</button>
+                    <button onclick="setBinauralBeat(4.0, true)" id="beat-btn-4" class="binaural-preset-btn chip active-binaural">4 Thêta bas</button>
+                    <button onclick="setBinauralBeat(5.5, true)" id="beat-btn-5.5" class="binaural-preset-btn chip">5,5 Thêta</button>
+                    <button onclick="setBinauralBeat(7.83, true)" id="beat-btn-7.83" class="binaural-preset-btn chip">7,83 Schumann</button>
+                    <button onclick="setBinauralBeat(10.0, true)" id="beat-btn-10" class="binaural-preset-btn chip">10 Alpha</button>
+                </div>
+                <p id="brainwave-band-label" class="label" style="margin-top: 14px"></p>
+                <div class="readouts">
+                    <span>En ce moment : <strong id="readout-beat" class="values">+4.0 Hz</strong></span>
+                    <span>Gauche <strong id="freq-left-val" class="values">100.0 Hz</strong></span>
+                    <span>Droite <strong id="freq-right-val" class="values">104.0 Hz</strong></span>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-title">Rampe et modules</div>
+                <div class="stack">
+                    <div id="card-mod-ramp" class="module">
+                        <div class="row"><span class="module-name">Rampe du battement</span><button id="btn-mod-ramp" class="switch" onclick="toggleModule('ramp')" aria-pressed="false" aria-label="Rampe du battement"></button></div>
+                        <div class="chips">
+                            <button onclick="setRampDuration(5)" id="ramp-dur-5" class="chip on">5 min</button>
+                            <button onclick="setRampDuration(10)" id="ramp-dur-10" class="chip">10 min</button>
+                        </div>
+                        <div class="ramp-track"><div id="ramp-progress-bar" class="ramp-fill"></div></div>
+                        <div id="ramp-status-text" class="label" style="margin-top: 6px">Cible directe verrouillée</div>
+                    </div>
+                    <div id="card-mod-gamma" class="module">
+                        <div class="row"><span class="module-name">Pont Gamma 40 Hz</span><button id="btn-mod-gamma" class="switch" onclick="toggleModule('gamma')" aria-pressed="false" aria-label="Pont Gamma 40 Hz"></button></div>
+                        <div class="slider-line"><label class="label" for="gamma-depth-slider">Intensité</label><input id="gamma-depth-slider" type="range" min="5" max="70" value="25" oninput="updateAdvancedModules()"><span id="gamma-depth-label" class="values">25%</span></div>
+                    </div>
+                    <div id="card-mod-rotation" class="module">
+                        <div class="row"><span class="module-name">Rotation du son</span><button id="btn-mod-rotation" class="switch" onclick="toggleModule('rotation')" aria-pressed="false" aria-label="Rotation du son"></button></div>
+                        <div class="slider-line"><label class="label" for="rot-speed-slider">Vitesse</label><input id="rot-speed-slider" type="range" min="0.05" max="0.40" step="0.01" value="0.15" oninput="updateAdvancedModules()"><span id="rot-speed-label" class="values">0.15 Hz</span></div>
+                    </div>
+                    <div id="card-mod-iso" class="module">
+                        <div class="row"><span class="module-name">Onde isochrone</span><button id="btn-mod-iso" class="switch" onclick="toggleModule('iso')" aria-pressed="false" aria-label="Onde isochrone"></button></div>
+                        <div class="slider-line"><label class="label" for="iso-depth-slider">Profondeur</label><input id="iso-depth-slider" type="range" min="10" max="90" value="40" oninput="updateAdvancedModules()"><span id="iso-depth-label" class="values">40%</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-title">Mixage</div>
+                <div class="stack">
+                    <div><div class="row"><label for="vol-carrier-slider">Porteuse et battement</label><span id="vol-carrier-label" class="values">65%</span></div><input id="vol-carrier-slider" type="range" min="0" max="100" value="65" oninput="updateMixer()"></div>
+                    <div><div class="row"><label for="vol-pad-slider">Nappe harmonique</label><span id="vol-pad-label" class="values">25%</span></div><input id="vol-pad-slider" type="range" min="0" max="100" value="25" oninput="updateMixer()"></div>
+                    <div><div class="row"><label for="vol-flute-slider">Bruit rose</label><span id="vol-flute-label" class="values">40%</span></div><input id="vol-flute-slider" type="range" min="0" max="100" value="40" oninput="updateMixer()"></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="row">
+                    <div class="panel-title">Guide respiratoire 4-2-6</div>
+                    <button id="breath-toggle-btn" class="switch on" onclick="toggleBreathingGuide()" aria-pressed="true" aria-label="Guide respiratoire"></button>
+                </div>
+                <div class="breath">
+                    <div class="breath-ring"><div id="breath-outer-ring"></div><div id="breath-circle"><span id="breath-timer">4.0s</span></div></div>
+                    <div>
+                        <div id="breath-phase-label" class="breath-label">1. Inspirez lentement par le nez...</div>
+                        <p class="label">Déposez vos préoccupations dans un coffre mental, relâchez les paupières et le front.</p>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 14px">
+                    <p class="label">Accordage vocal : à l'expiration, un léger bourdonnement sur la porteuse.</p>
+                    <div class="chips" style="margin-top: 0; flex: none">
+                        <button class="chip" onclick="setCarrierFrequency(100, true)">100 Hz</button>
+                        <button class="chip" onclick="setCarrierFrequency(136.1, true)">136,1 Hz</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="row"><div class="panel-title">Oscilloscope</div><span id="audio-status-badge" class="badge">EN VEILLE</span></div>
+                <div class="scope">
+                    <canvas id="oscilloscope" aria-hidden="true"></canvas>
+                    <div class="scope-tags">
+                        <span id="badge-gamma" class="tag hidden">Pont Gamma</span>
+                        <span id="badge-ramp" class="tag hidden">Rampe</span>
+                        <span id="badge-rot" class="tag hidden">Rotation</span>
+                        <span id="badge-iso" class="tag hidden">Isochrone</span>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 14px">
+                    <div><div>Mode léger</div><div class="label">Coupe l'oscilloscope et les effets, pour réserver le téléphone au son. Actif par défaut sur écran tactile.</div></div>
+                    <button id="btn-light-mode" class="switch" onclick="toggleLightMode()" aria-pressed="false" aria-label="Mode léger"></button>
+                </div>
+            </section>
+
+            <section class="panel wide">
+                <div class="panel-title">Profils de réglages</div>
+                <div class="label">Gardés dans ce navigateur. Exportez-les pour en conserver une copie.</div>
+                <div class="chips" style="margin-top: 12px">
+                    <input id="profile-name" class="field field-grow" type="text" maxlength="60" placeholder="Nom du profil" aria-label="Nom du profil">
+                    <button class="chip" onclick="saveProfile()">Enregistrer</button>
+                </div>
+                <div class="chips">
+                    <select id="profile-select" class="field field-grow" aria-label="Profil enregistré" onchange="onProfileSelected()"></select>
+                    <button class="chip" onclick="loadSelectedProfile()">Charger</button>
+                    <button class="chip" onclick="deleteSelectedProfile()">Supprimer</button>
+                    <button class="chip" onclick="exportProfiles()">Exporter</button>
+                    <label class="chip file-button">Importer<input id="profile-import" class="visually-hidden" type="file" accept=".json,application/json" onchange="importProfiles(this)"></label>
+                </div>
+                <p id="profile-note" class="profile-note" role="status"></p>
+            </section>
+
+            <details class="panel wide">
+                <summary class="panel-title" style="cursor: pointer">Journal d'interruptions <span id="session-log-count" class="label" style="font-weight: 400"></span></summary>
+                <p class="label" style="margin-top: 8px">Note les lectures, les pauses, l'extinction de l'écran et ce que le système coupe. À consulter ou à copier après un essai, écran éteint par exemple.</p>
+                <textarea id="session-log-text" class="log" readonly aria-label="Journal d'interruptions"></textarea>
+                <div class="chips">
+                    <button class="chip" onclick="copySessionLog()">Copier</button>
+                    <button class="chip" onclick="clearSessionLog()">Effacer</button>
+                </div>
+            </details>
+        </div>
+
+        <p class="notice" style="margin-top: 20px">Outil expérimental : aucun résultat n'est promis, les effets dépendent de la sensibilité de chacun. Déconseillé aux personnes sujettes à l'épilepsie photosensible ou auditive. Ne jamais utiliser en conduisant.</p>
+    </div>
+</div>
+
+    <script>
+        // ============================================================================
+        // NEURO-ACOUSTIC WEB AUDIO ENGINE V2.0 (Pure Real-Time Synthesis)
+        // ============================================================================
+        let audioCtx = null;
+        let isPlaying = false;
+
+        // Audio Nodes
+        let masterGain = null;
+        let analyserLeft = null;
+        let analyserRight = null;
+
+        // Primary Carrier + Binaural Oscillators (Strict Stereo Split)
+        let oscLeft = null;
+        let oscRight = null;
+        let carrierGain = null;
+        let isoModGain = null; // Isochronic pulse modulation stage
+
+        // Next-Gen Module 1: 40 Hz Theta-Gamma Bridge Nodes
+        let gammaOscLeft = null;
+        let gammaOscRight = null;
+        let gammaGain = null;
+
+        // Next-Gen Module 3: 3D Vestibular Rotation Nodes
+        let spatialPanner = null;
+        let rotationLFO = null;
+        let rotationLFOGain = null;
+
+        // Next-Gen Module 4: Isochronic Pulse LFO Nodes
+        let isoLFO = null;
+        let isoLFOGain = null;
+
+        // Warm Harmonic Pad Oscillators (Sub-octave + Pure 3:2 Fifth)
+        let oscSub = null;
+        let oscFifth = null;
+        let padFilter = null;
+        let padGain = null;
+
+        // Pink Noise Sensory Isolation Generator
+        let noiseNode = null;
+        let pinkFilterLow = null;
+        let pinkFilterBand = null;
+        let breathLFO = null;
+        let breathLFOGain = null;
+        let pinkGain = null;
+
+        // Preset changes during a session glide instead of jumping
+        const CARRIER_GLIDE_SECONDS = 60;
+        let layerTau = null; // Overrides layer gain smoothing while a preset is being applied mid-session
+        const MANUAL_STEP_SECONDS = 0.25; // Softens manual slider moves
+
+        // V2.4: lock screen player. The icon is embedded so it works without any network.
+        const APP_VERSION = 'V3.1';
+        const APP_ICON = 'data:image/png;base64,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';
+
+        // V2.3: frequency control signals. Everything following the carrier or the beat is
+        // driven from these, so the audio thread runs the whole session even if timers are throttled.
+        let carrierSource = null;
+        let beatSource = null;
+        let gammaBaseSource = null;
+
+        let outputElement = null;
+        let outputPauseTimer = null;
+        const KEEP_ALIVE_SECONDS = 12;
+
+        // Current State Parameters
+        let state = {
+            carrierFreq: 100.0,
+            targetBeatFreq: 4.0,
+            currentBeatFreq: 4.0,
+            volCarrier: 0.65,
+            volPad: 0.25,
+            volFlute: 0.40,
+            timerMinutes: 30,
+            remainingSeconds: 30 * 60,
+            timerInterval: null,
+            breathingActive: true,
+            // Next-Gen V2.0 Modules State
+            gammaActive: false,
+            gammaDepth: 0.25,
+            rampActive: false,
+            rampDurationMinutes: 5,
+            rampStartSec: 0, // Session time at which the current ramp started
+            rampStartBeat: 12.0,
+            beatStep: null,
+            rotationActive: false,
+            rotationSpeed: 0.15,
+            isoActive: false,
+            isoDepth: 0.40,
+            carrierGlide: null,
+            sessionAnchor: 0, // Audio clock value matching the start of the session
+            timeline: null,   // Frequency curves of the session, in session seconds
+            // V2.2 Focus Ascent State
+            selectedFocus: 'focus10', // Focus chosen by the user (target of the ascent)
+            currentFocus: 'focus10',  // Focus whose settings are currently loaded
+            ascentEnabled: false,
+            ascentPlan: null,
+            // V2.5 Settling-In State
+            prepMinutes: 0,
+            pausedPrepSeconds: null, // Settling-in time left when paused during it
+            prepActive: false
+        };
+
+        // Neuro-Acoustic Database for Carrier Frequencies
+        const clinicalData = {
+            100: {
+                title: "ÉTAT CIBLE : PORTEUSE DE BASE (100 Hz)",
+                desc: "La fréquence 100 Hz sert de porteuse aux Horizons 1 et 3. Sa longueur d'onde grave est particulièrement confortable lors d'écoutes prolongées et permet une détection très nette du déphasage binaural par le tronc cérébral."
+            },
+            111: {
+                title: "ÉTAT CIBLE : RÉSONANCE HYPOGÉE & BÊTA-ENDORPHINES (111 Hz)",
+                desc: "Piste expérimentale : autour de 111 Hz, certains travaux archéo-acoustiques évoquent une baisse de l'activité du cortex préfrontal verbal, propice à un état de transe lucide."
+            },
+            128: {
+                title: "ÉTAT CIBLE : CONDUCTION OSSEUSE & DÉTENTE SOMATIQUE (128 Hz)",
+                desc: "Fréquence fondamentale du diapason d'Otto. Piste expérimentale : une lourdeur physique rapide, qui faciliterait l'entrée dans l'Horizon 1."
+            },
+            136: {
+                title: "ÉTAT CIBLE : EXPANSION SPATIALE & PERCEPTION À DISTANCE (136.1 Hz)",
+                desc: "Fréquence de l'année terrestre (Om cosmique). Idéale en Horizon 2 avec le Pont Gamma 40 Hz activé pour stabiliser le système autonome tout en recevant des impressions visuelles non-locales."
+            },
+            200: {
+                title: "ÉTAT CIBLE : OCTAVE SUPÉRIEURE & HORIZON 4 (200 Hz)",
+                desc: "Harmonique directe du 100 Hz. Utilisée pour l'Horizon 4, afin de soutenir une imagerie mentale vive et l'exploration hors du corps."
+            },
+            432: {
+                title: "ÉTAT CIBLE : COURBE D'OSTER MAXIMALE & HOMÉOSTASIE (432 Hz)",
+                desc: "Située au cœur de la zone de sensibilité maximale du tronc cérébral aux battements binauraux (courbe de Gerald Oster), pour un repérage facile du battement."
+            }
+        };
+
+        // Initialize Web Audio Graph V2.0
+        function initAudioGraph() {
+            if (audioCtx) return;
+
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            // V2.8: a larger output buffer, far less prone to dropouts on a phone. Nothing here
+            // needs an instant response, so the small added latency is of no consequence.
+            audioCtx = new AudioContextClass({ latencyHint: 'playback' });
+
+            const now = audioCtx.currentTime;
+
+            // Master Gain (with gentle fade-in protection)
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.0001, now);
+            connectAudioOutput();
+
+            // Stereo Merger for strict Left / Right headphone separation
+            const merger = audioCtx.createChannelMerger(2);
+
+            // Analysers for real-time dual-channel oscilloscope
+            analyserLeft = audioCtx.createAnalyser();
+            analyserRight = audioCtx.createAnalyser();
+            analyserLeft.fftSize = 1024;
+            analyserRight.fftSize = 1024;
+
+            // ------------------------------------------------------------------------
+            // 1. Primary Carrier & Binaural Oscillators + Isochronic Stage
+            // ------------------------------------------------------------------------
+            oscLeft = audioCtx.createOscillator();
+            oscRight = audioCtx.createOscillator();
+            oscLeft.type = 'sine';
+            oscRight.type = 'sine';
+
+            carrierSource = audioCtx.createConstantSource();
+            beatSource = audioCtx.createConstantSource();
+            gammaBaseSource = audioCtx.createConstantSource();
+            carrierSource.offset.setValueAtTime(state.carrierFreq, now);
+            beatSource.offset.setValueAtTime(state.currentBeatFreq, now);
+            gammaBaseSource.offset.setValueAtTime(gammaBaseFor(state.carrierFreq), now);
+
+            // Left = carrier, Right = carrier + beat: the binaural difference is the beat signal itself
+            oscLeft.frequency.setValueAtTime(0, now);
+            oscRight.frequency.setValueAtTime(0, now);
+            carrierSource.connect(oscLeft.frequency);
+            carrierSource.connect(oscRight.frequency);
+            beatSource.connect(oscRight.frequency);
+
+            carrierGain = audioCtx.createGain();
+            carrierGain.gain.setValueAtTime(state.volCarrier * 0.45, now);
+
+            // Isochronic Amplitude Modulation Node
+            isoModGain = audioCtx.createGain();
+            isoModGain.gain.setValueAtTime(1.0, now);
+
+            isoLFO = audioCtx.createOscillator();
+            isoLFO.type = 'sine';
+            isoLFO.frequency.setValueAtTime(0, now);
+            beatSource.connect(isoLFO.frequency);
+
+            isoLFOGain = audioCtx.createGain();
+            isoLFOGain.gain.setValueAtTime(state.isoActive ? state.isoDepth * 0.45 : 0.0, now);
+
+            isoLFO.connect(isoLFOGain);
+            isoLFOGain.connect(isoModGain.gain);
+
+            const leftGain = audioCtx.createGain();
+            const rightGain = audioCtx.createGain();
+            leftGain.gain.setValueAtTime(1.0, now);
+            rightGain.gain.setValueAtTime(1.0, now);
+
+            oscLeft.connect(leftGain);
+            oscRight.connect(rightGain);
+
+            leftGain.connect(analyserLeft);
+            rightGain.connect(analyserRight);
+
+            leftGain.connect(merger, 0, 0);  // Strictly Left Ear
+            rightGain.connect(merger, 0, 1); // Strictly Right Ear
+
+            merger.connect(isoModGain);
+            isoModGain.connect(carrierGain);
+            carrierGain.connect(masterGain);
+
+            // ------------------------------------------------------------------------
+            // 2. Next-Gen Module 1: 40 Hz Theta-Gamma Bridge (High-Octave Stereo Pair)
+            // ------------------------------------------------------------------------
+            const gammaMerger = audioCtx.createChannelMerger(2);
+            gammaOscLeft = audioCtx.createOscillator();
+            gammaOscRight = audioCtx.createOscillator();
+            gammaOscLeft.type = 'sine';
+            gammaOscRight.type = 'sine';
+
+            // Uses 2x carrier frequency (e.g., 200 Hz L vs 240 Hz R = 40 Hz Gamma beat)
+            gammaOscLeft.frequency.setValueAtTime(0, now);
+            gammaOscRight.frequency.setValueAtTime(40.0, now);
+            gammaBaseSource.connect(gammaOscLeft.frequency);
+            gammaBaseSource.connect(gammaOscRight.frequency);
+
+            gammaGain = audioCtx.createGain();
+            gammaGain.gain.setValueAtTime(state.gammaActive ? (state.gammaDepth * 0.14) : 0.0, now);
+
+            gammaOscLeft.connect(gammaMerger, 0, 0);
+            gammaOscRight.connect(gammaMerger, 0, 1);
+            gammaMerger.connect(gammaGain);
+            gammaGain.connect(masterGain);
+
+            // ------------------------------------------------------------------------
+            // 3. Next-Gen Module 3: 3D Vestibular Stereo Panner for Pad & Pink Noise
+            // ------------------------------------------------------------------------
+            spatialPanner = audioCtx.createStereoPanner();
+            spatialPanner.pan.setValueAtTime(0.0, now);
+
+            rotationLFO = audioCtx.createOscillator();
+            rotationLFO.type = 'sine';
+            rotationLFO.frequency.setValueAtTime(state.rotationSpeed, now);
+
+            rotationLFOGain = audioCtx.createGain();
+            rotationLFOGain.gain.setValueAtTime(state.rotationActive ? 0.88 : 0.0, now);
+
+            rotationLFO.connect(rotationLFOGain);
+            rotationLFOGain.connect(spatialPanner.pan);
+            spatialPanner.connect(masterGain);
+
+            // ------------------------------------------------------------------------
+            // 4. Warm Harmonic Pad (Sub-Octave + Pure Fifth 1.5x routed via 3D Panner)
+            // ------------------------------------------------------------------------
+            oscSub = audioCtx.createOscillator();
+            oscFifth = audioCtx.createOscillator();
+            oscSub.type = 'sine';
+            oscFifth.type = 'sine';
+
+            oscSub.frequency.setValueAtTime(0, now);
+            oscFifth.frequency.setValueAtTime(0, now);
+            connectScaled(carrierSource, oscSub.frequency, 0.5);
+            connectScaled(carrierSource, oscFifth.frequency, 1.5);
+
+            padFilter = audioCtx.createBiquadFilter();
+            padFilter.type = 'lowpass';
+            padFilter.frequency.setValueAtTime(0, now);
+            connectScaled(carrierSource, padFilter.frequency, 2.0);
+
+            const subMix = audioCtx.createGain();
+            const fifthMix = audioCtx.createGain();
+            subMix.gain.setValueAtTime(0.55, now);
+            fifthMix.gain.setValueAtTime(0.20, now);
+
+            padGain = audioCtx.createGain();
+            padGain.gain.setValueAtTime(state.volPad * 0.35, now);
+
+            oscSub.connect(subMix);
+            oscFifth.connect(padFilter);
+            padFilter.connect(fifthMix);
+
+            subMix.connect(padGain);
+            fifthMix.connect(padGain);
+            padGain.connect(spatialPanner);
+
+            // ------------------------------------------------------------------------
+            // 5. Pink Noise Generator (routed via 3D Panner)
+            // ------------------------------------------------------------------------
+            const bufferSize = audioCtx.sampleRate * 5;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.035;
+                b6 = white * 0.115926;
+            }
+
+            noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = noiseBuffer;
+            noiseNode.loop = true;
+
+            pinkFilterLow = audioCtx.createBiquadFilter();
+            pinkFilterLow.type = 'lowpass';
+            pinkFilterLow.frequency.setValueAtTime(950, now);
+            pinkFilterLow.Q.setValueAtTime(0.7, now);
+
+            pinkFilterBand = audioCtx.createBiquadFilter();
+            pinkFilterBand.type = 'peaking';
+            pinkFilterBand.frequency.setValueAtTime(0, now);
+            connectScaled(carrierSource, pinkFilterBand.frequency, 2.0);
+            pinkFilterBand.gain.setValueAtTime(4.0, now);
+            pinkFilterBand.Q.setValueAtTime(2.5, now);
+
+            breathLFO = audioCtx.createOscillator();
+            breathLFO.type = 'sine';
+            breathLFO.frequency.setValueAtTime(0.0833, now);
+
+            breathLFOGain = audioCtx.createGain();
+            breathLFOGain.gain.setValueAtTime(0.18, now);
+
+            const pinkBreathMod = audioCtx.createGain();
+            pinkBreathMod.gain.setValueAtTime(0.82, now);
+            breathLFO.connect(breathLFOGain);
+            breathLFOGain.connect(pinkBreathMod.gain);
+
+            pinkGain = audioCtx.createGain();
+            pinkGain.gain.setValueAtTime(state.volFlute * 0.55, now);
+
+            noiseNode.connect(pinkFilterLow);
+            pinkFilterLow.connect(pinkFilterBand);
+            pinkFilterBand.connect(pinkBreathMod);
+            pinkBreathMod.connect(pinkGain);
+            pinkGain.connect(spatialPanner);
+
+            // Start all generators
+            carrierSource.start(now);
+            beatSource.start(now);
+            gammaBaseSource.start(now);
+            oscLeft.start(now);
+            oscRight.start(now);
+            gammaOscLeft.start(now);
+            gammaOscRight.start(now);
+            oscSub.start(now);
+            oscFifth.start(now);
+            noiseNode.start(now);
+            breathLFO.start(now);
+            rotationLFO.start(now);
+            isoLFO.start(now);
+
+            applyBlockRateControls();
+            audioCtx.addEventListener('statechange', updateAudioClockStatus);
+        }
+
+        // ------------------------------------------------------------------------
+        // V2.7 output: the sound goes straight to the speakers. A separate media element
+        // loops a near-silent file, so that the phone sees a real media being played
+        // (lock screen controls, background). It carries none of the session's sound.
+        // ------------------------------------------------------------------------
+        function connectAudioOutput() {
+            masterGain.connect(audioCtx.destination);
+
+            outputElement = document.createElement('audio');
+            outputElement.hidden = true;
+            outputElement.loop = true;
+            outputElement.src = URL.createObjectURL(buildKeepAliveWav());
+            document.body.appendChild(outputElement);
+
+            // The system can pause the element itself (headset unplugged, audio interruption):
+            // the session pauses with it, so that its clock does not run on in silence.
+            outputElement.addEventListener('pause', () => {
+                if (!isPlaying) return;
+                logSessionEvent('Lecteur de maintien', 'mis en pause par le système, session en pause');
+                toggleAudioEngine();
+            });
+            ['waiting', 'stalled', 'error'].forEach(type => {
+                outputElement.addEventListener(type, () => logSessionEvent('Lecteur de maintien', type));
+            });
+            audioCtx.addEventListener('statechange', () => logSessionEvent('Moteur audio', audioCtx.state));
+        }
+
+        // Long enough to count as real media, with a faint noise so as not to count as muted.
+        // About -80 dB, generated here so that it needs no file and no network.
+        function buildKeepAliveWav() {
+            const sampleRate = 8000;
+            const sampleCount = sampleRate * KEEP_ALIVE_SECONDS;
+            const view = new DataView(new ArrayBuffer(44 + sampleCount * 2));
+            const writeText = (offset, text) => {
+                for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i));
+            };
+            writeText(0, 'RIFF');
+            view.setUint32(4, 36 + sampleCount * 2, true);
+            writeText(8, 'WAVEfmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeText(36, 'data');
+            view.setUint32(40, sampleCount * 2, true);
+            for (let i = 0; i < sampleCount; i++) {
+                view.setInt16(44 + i * 2, Math.round((Math.random() - 0.5) * 6), true);
+            }
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function startAudioOutput() {
+            clearTimeout(outputPauseTimer);
+
+            const playing = outputElement.play();
+            if (playing) {
+                playing.catch(error => {
+                    if (error.name === 'AbortError') return;
+                    // The session still plays, but it may not survive the screen going off
+                    logSessionEvent('Lecteur de maintien', `refusé : ${error.name}`);
+                    if (isPlaying) setSessionNote('Lecteur de maintien refusé : le son peut couper écran éteint.');
+                });
+            }
+        }
+
+        // Pauses the element once the short fade-out is over
+        function stopAudioOutput() {
+            clearTimeout(outputPauseTimer);
+            outputPauseTimer = setTimeout(() => {
+                if (!isPlaying) outputElement.pause();
+            }, 1100);
+        }
+
+        function setupMediaSession() {
+            if (!('mediaSession' in navigator)) return;
+
+            const actions = {
+                play: () => { if (!isPlaying) toggleAudioEngine(); },
+                pause: () => { if (isPlaying) toggleAudioEngine(); },
+                stop: () => stopSession()
+            };
+            Object.keys(actions).forEach(action => {
+                try {
+                    navigator.mediaSession.setActionHandler(action, actions[action]);
+                } catch (error) {
+                    // Not every browser supports every action
+                }
+            });
+        }
+
+        // Shows the Focus being played: in ascent, the current stage and not the target
+        function updateMediaSession() {
+            refreshSessionView();
+            if (!('mediaSession' in navigator)) return;
+
+            if (typeof MediaMetadata !== 'undefined') {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: inPrep() ? `Préparation • ${currentSoundLabel()}` : currentSoundLabel(),
+                    artist: 'Console Neuro-Acoustique',
+                    album: `Entrée en Phase ${APP_VERSION}`,
+                    artwork: [{ src: APP_ICON, sizes: '512x512', type: 'image/png' }]
+                });
+            }
+            navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+            updateMediaPosition();
+        }
+
+        // Without this, the lock screen shows the length of the keep-alive loop (12 s)
+        function updateMediaPosition() {
+            if (!navigator.mediaSession.setPositionState) return;
+
+            let duration = state.timerMinutes * 60;
+            let position = sessionElapsedSeconds();
+            const prepLeft = inPrep() ? state.sessionAnchor - audioNow() : (!isPlaying ? state.pausedPrepSeconds : null);
+            if (prepLeft) {
+                duration = Math.max(prepLeft, state.prepMinutes * 60);
+                position = duration - prepLeft;
+            }
+            try {
+                if (!isPlaying && !sessionInProgress()) {
+                    navigator.mediaSession.setPositionState();
+                } else {
+                    navigator.mediaSession.setPositionState({ duration, position: Math.min(position, duration), playbackRate: 1 });
+                }
+            } catch (error) {
+                // Only affects the lock screen display
+            }
+        }
+
+        // V2.8: these controls only move slowly, so once per audio block (under 3 ms) is plenty.
+        // Computing them for every sample, the filters above all, costs a phone a lot of CPU.
+        function applyBlockRateControls() {
+            [
+                carrierSource.offset, beatSource.offset, gammaBaseSource.offset,
+                oscLeft.frequency, oscRight.frequency, oscSub.frequency, oscFifth.frequency,
+                gammaOscLeft.frequency, gammaOscRight.frequency, isoLFO.frequency,
+                padFilter.frequency, pinkFilterBand.frequency, spatialPanner.pan
+            ].forEach(param => {
+                try {
+                    param.automationRate = 'k-rate';
+                } catch (error) {
+                    // Older browsers keep the per-sample behaviour, which still works
+                }
+            });
+        }
+
+        function connectScaled(source, param, factor) {
+            const scale = audioCtx.createGain();
+            scale.gain.setValueAtTime(factor, audioCtx.currentTime);
+            source.connect(scale);
+            scale.connect(param);
+        }
+
+        function gammaBaseFor(carrierFreq) {
+            return Math.max(200, carrierFreq * 2);
+        }
+
+        // Toggle Next-Gen Modules ON/OFF independently
+        function toggleModule(modName, forceState = null, rampFromBeat = null) {
+            if (modName === 'gamma') {
+                state.gammaActive = forceState !== null ? forceState : !state.gammaActive;
+                updateModuleCardUI('gamma', state.gammaActive, 'badge-gamma');
+            } else if (modName === 'ramp') {
+                state.rampActive = forceState !== null ? forceState : !state.rampActive;
+                if (state.rampActive) {
+                    startRamp(rampFromBeat !== null ? rampFromBeat : Math.max(12.0, state.targetBeatFreq + 4.0));
+                } else {
+                    setBeatDirectly(state.targetBeatFreq);
+                    document.getElementById('ramp-progress-bar').style.width = '0%';
+                    document.getElementById('ramp-status-text').textContent = 'Cible directe verrouillée';
+                }
+                updateModuleCardUI('ramp', state.rampActive, 'badge-ramp');
+                refreshRunningPlan();
+            } else if (modName === 'rotation') {
+                state.rotationActive = forceState !== null ? forceState : !state.rotationActive;
+                updateModuleCardUI('rotation', state.rotationActive, 'badge-rot');
+            } else if (modName === 'iso') {
+                state.isoActive = forceState !== null ? forceState : !state.isoActive;
+                updateModuleCardUI('iso', state.isoActive, 'badge-iso');
+            }
+            updateAdvancedModules();
+        }
+
+        function updateModuleCardUI(modKey, isActive, badgeId) {
+            const card = document.getElementById(`card-mod-${modKey}`);
+            const btn = document.getElementById(`btn-mod-${modKey}`);
+            const badge = document.getElementById(badgeId);
+
+            if (isActive) {
+                card.classList.add('active-module-card');
+                setSwitch(btn, true);
+                if (badge) badge.classList.remove('hidden');
+            } else {
+                card.classList.remove('active-module-card');
+                setSwitch(btn, false);
+                if (badge) badge.classList.add('hidden');
+            }
+        }
+
+        // Starts a ramp from fromBeat at the current session time
+        function startRamp(fromBeat, atSec = null) {
+            state.beatStep = null;
+            state.rampStartSec = atSec !== null ? atSec : sessionElapsedSeconds();
+            state.rampStartBeat = fromBeat;
+            updateBeatDisplay(fromBeat);
+            document.getElementById('ramp-progress-bar').style.width = '0%';
+            document.getElementById('ramp-status-text').textContent =
+                `Rampe prête : ${fromBeat.toFixed(1)} Hz → ${state.targetBeatFreq.toFixed(1)} Hz`;
+        }
+
+        // Moves the beat without a ramp, with a short slide if the session is running
+        function setBeatDirectly(beat) {
+            state.beatStep = isPlaying && !inPrep()
+                ? { from: state.currentBeatFreq, to: beat, startSec: sessionElapsedSeconds(), dur: MANUAL_STEP_SECONDS }
+                : null;
+            updateBeatDisplay(beat);
+        }
+
+        // Re-lays the audio schedule after a manual change during a session
+        function refreshRunningPlan() {
+            if (!isPlaying) return;
+            if (state.ascentPlan) {
+                buildAscentPlan(remainingFocusKeys(), currentRampSecondsLeft(), sessionElapsedSeconds(), state.remainingSeconds);
+                renderAscentTimeline();
+            }
+            scheduleSessionAudio();
+        }
+
+        function setRampDuration(mins) {
+            state.rampDurationMinutes = mins;
+            updateRampDurationUI(mins);
+            if (isPlaying && state.rampActive) {
+                startRamp(state.currentBeatFreq);
+                refreshRunningPlan();
+            }
+        }
+
+        function updateRampDurationUI(mins) {
+            document.getElementById('ramp-dur-5').className = mins === 5
+                ? 'chip on'
+                : 'chip';
+            document.getElementById('ramp-dur-10').className = mins === 10
+                ? 'chip on'
+                : 'chip';
+        }
+
+        function updateAdvancedModules() {
+            state.gammaDepth = parseFloat(document.getElementById('gamma-depth-slider').value) / 100;
+            state.rotationSpeed = parseFloat(document.getElementById('rot-speed-slider').value);
+            state.isoDepth = parseFloat(document.getElementById('iso-depth-slider').value) / 100;
+
+            document.getElementById('gamma-depth-label').textContent = `${Math.round(state.gammaDepth * 100)}%`;
+            document.getElementById('rot-speed-label').textContent = `${state.rotationSpeed.toFixed(2)} Hz`;
+            document.getElementById('iso-depth-label').textContent = `${Math.round(state.isoDepth * 100)}%`;
+
+            if (audioCtx) {
+                const now = audioCtx.currentTime;
+                rotationLFO.frequency.setTargetAtTime(state.rotationSpeed, now, 0.15);
+                if (!inPrep()) {
+                    gammaGain.gain.setTargetAtTime(state.gammaActive ? (state.gammaDepth * 0.14) : 0.0, now, layerTau || 0.15);
+                    rotationLFOGain.gain.setTargetAtTime(state.rotationActive ? 0.88 : 0.0, now, layerTau || 0.2);
+                }
+                if (!state.rotationActive) {
+                    spatialPanner.pan.setTargetAtTime(0.0, now, 0.2);
+                }
+                isoLFOGain.gain.setTargetAtTime(state.isoActive ? (state.isoDepth * 0.45) : 0.0, now, layerTau || 0.15);
+                if (inPrep()) layStageLevels();
+            }
+        }
+
+        // Start / Stop Audio Engine with Smooth 1.5s Fade
+        function toggleAudioEngine() {
+            if (!audioCtx) {
+                initAudioGraph();
+            }
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+            const statusBadge = document.getElementById('audio-status-badge');
+
+            if (!isPlaying) {
+                const prepSeconds = takeStartingPrepSeconds();
+
+                // A new session (not a resume) always restarts from a clean entry ramp
+                if (state.remainingSeconds === state.timerMinutes * 60) {
+                    if (state.carrierGlide) setCarrierFrequency(state.carrierGlide.to, true);
+                    if (state.ascentEnabled) {
+                        startAscentFromBeginning();
+                    } else if (state.rampActive) {
+                        toggleModule('ramp', true);
+                    }
+                }
+
+                const resumeAt = state.timerMinutes * 60 - state.remainingSeconds;
+                state.sessionAnchor = audioNow() - resumeAt + prepSeconds;
+                state.prepActive = prepSeconds > 0;
+                isPlaying = true;
+                scheduleSessionAudio(1.5);
+                startAudioOutput();
+
+                statusBadge.textContent = "SYNCHRONISATION ACTIVE";
+                statusBadge.className = "badge on";
+
+                lastTickClock = null;
+                lastDropoutCount = null;
+                logSessionEvent('Lecture', `${focusLabel(state.currentFocus)}, ${prepSeconds > 0 ? `sas de ${Math.round(prepSeconds)} s` : 'sans sas'}`);
+                startSessionTimer();
+                updateTimerDisplay();
+                updateMediaSession();
+            } else {
+                state.pausedPrepSeconds = inPrep() ? state.sessionAnchor - audioNow() : null;
+                const stoppedAt = sessionElapsedSeconds();
+                state.remainingSeconds = Math.max(0, Math.ceil(state.timerMinutes * 60 - stoppedAt));
+                holdScheduledAudio(stoppedAt);
+
+                masterGain.gain.cancelScheduledValues(now);
+                masterGain.gain.setValueAtTime(Math.max(0.0001, masterGain.gain.value), now);
+                masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
+
+                isPlaying = false;
+
+                statusBadge.textContent = "EN PAUSE";
+                statusBadge.className = "badge";
+
+                stopSessionTimer();
+                stopAudioOutput();
+                logSessionEvent('Pause', `reste ${Math.ceil(state.remainingSeconds)} s`);
+                updateTimerDisplay();
+                updateMediaSession();
+            }
+            updateTransportUI();
+            renderAscentTimeline();
+        }
+
+        // Stop: ends the session for good, the next start is a new session
+        function stopSession() {
+            if (!audioCtx || !sessionInProgress()) return;
+            if (isPlaying) toggleAudioEngine();
+            logSessionEvent('Arrêt', '');
+
+            state.remainingSeconds = state.timerMinutes * 60;
+            state.pausedPrepSeconds = null;
+            state.prepActive = false;
+            if (state.carrierGlide) setCarrierFrequency(state.carrierGlide.to, true);
+            state.beatStep = null;
+
+            if (state.ascentEnabled) {
+                startAscentFromBeginning();
+            } else if (state.rampActive) {
+                toggleModule('ramp', true);
+            } else {
+                updateBeatDisplay(state.targetBeatFreq);
+            }
+
+            const statusBadge = document.getElementById('audio-status-badge');
+            statusBadge.textContent = "EN VEILLE";
+            statusBadge.className = "badge";
+
+            setSessionNote('');
+            syncSessionUI();
+            updateMediaSession();
+        }
+
+        // Started and not stopped, whether playing or paused
+        function sessionInProgress() {
+            return isPlaying
+                || state.pausedPrepSeconds !== null
+                || state.remainingSeconds < state.timerMinutes * 60;
+        }
+
+        function updateTransportUI() {
+            const paused = !isPlaying && sessionInProgress();
+            const playBtn = document.getElementById('master-play-btn');
+            const stopBtn = document.getElementById('stop-session-btn');
+
+            document.getElementById('play-icon').classList.toggle('hidden', isPlaying);
+            document.getElementById('pause-icon').classList.toggle('hidden', !isPlaying);
+            document.getElementById('play-btn-text').textContent = isPlaying ? 'Pause' : (paused ? 'Reprendre' : 'Entrer en Phase');
+
+            playBtn.className = isPlaying ? 'btn btn-pause' : 'btn btn-primary';
+            stopBtn.className = 'btn btn-stop';
+            stopBtn.disabled = !(isPlaying || paused);
+            refreshSessionView();
+        }
+
+        // Update Carrier Frequency smoothly
+        function setCarrierFrequency(freq, fromPreset = false) {
+            const parsedFreq = parseFloat(freq);
+            state.carrierGlide = isPlaying && !inPrep()
+                ? { from: state.carrierFreq, to: parsedFreq, startSec: sessionElapsedSeconds(), dur: MANUAL_STEP_SECONDS }
+                : null;
+            state.carrierFreq = parsedFreq;
+
+            updateCarrierDisplay(parsedFreq);
+            updateCarrierInfo(parsedFreq);
+            if (isPlaying) scheduleSessionAudio();
+        }
+
+        function updateCarrierDisplay(parsedFreq) {
+            document.getElementById('carrier-display').textContent = parsedFreq.toFixed(1);
+            document.getElementById('carrier-slider').value = parsedFreq;
+            updateReadouts();
+        }
+
+        function updateCarrierInfo(parsedFreq) {
+            document.querySelectorAll('.freq-preset-btn').forEach(btn => btn.classList.remove('active-preset'));
+            const matchingBtn = document.getElementById(`freq-btn-${Math.round(parsedFreq)}`);
+            if (matchingBtn && Math.abs(parsedFreq - Math.round(parsedFreq)) < 0.2) {
+                matchingBtn.classList.add('active-preset');
+            }
+
+            const rounded = Math.round(parsedFreq);
+            if (clinicalData[rounded]) {
+                document.getElementById('clinical-title').textContent = clinicalData[rounded].title;
+                document.getElementById('clinical-desc').textContent = clinicalData[rounded].desc;
+            } else {
+                document.getElementById('clinical-title').textContent = `PORTEUSE PERSONNALISÉE (${parsedFreq.toFixed(1)} Hz)`;
+                document.getElementById('clinical-desc').textContent = "Onde sinusoïdale pure équilibrée entre les deux hémisphères. Combinez avec un différentiel Thêta (4 à 7.83 Hz) et le Pont Gamma 40 Hz pour stabiliser la lucidité.";
+            }
+        }
+
+        // Slow carrier transition between two Focus. The caller schedules it on the audio thread.
+        function startCarrierGlide(targetFreq, atSec = null) {
+            const from = atSec !== null && state.carrierGlide ? state.carrierGlide.to : state.carrierFreq;
+            if (Math.abs(targetFreq - from) < 0.05) {
+                state.carrierGlide = null;
+                state.carrierFreq = targetFreq;
+                updateCarrierDisplay(targetFreq);
+            } else {
+                state.carrierGlide = {
+                    from,
+                    to: targetFreq,
+                    startSec: atSec !== null ? atSec : sessionElapsedSeconds(),
+                    dur: CARRIER_GLIDE_SECONDS
+                };
+            }
+            updateCarrierInfo(targetFreq);
+        }
+
+        function nudgeCarrier(delta) {
+            const next = Math.min(450, Math.max(50, state.carrierFreq + delta));
+            setCarrierFrequency(next, false);
+        }
+
+        // Update Target Binaural Beat Frequency
+        function setBinauralBeat(beat, fromPreset = false) {
+            const parsedBeat = parseFloat(beat);
+            state.targetBeatFreq = parsedBeat;
+            updateBeatTargetUI(parsedBeat);
+
+            if (state.rampActive) {
+                // A new target during a ramp continues from the current beat
+                if (isPlaying) startRamp(state.currentBeatFreq);
+            } else {
+                setBeatDirectly(parsedBeat);
+            }
+            refreshRunningPlan();
+        }
+
+        function updateBeatTargetUI(parsedBeat) {
+            document.getElementById('beat-display').textContent = parsedBeat.toFixed(2).replace(/\.00$/, '.0');
+            document.getElementById('beat-slider').value = parsedBeat;
+
+            document.querySelectorAll('.binaural-preset-btn').forEach(btn => btn.classList.remove('active-binaural'));
+            const presetBtn = document.getElementById(`beat-btn-${parsedBeat}`);
+            if (presetBtn) presetBtn.classList.add('active-binaural');
+        }
+
+        // Display only: the audio follows the schedule laid by scheduleSessionAudio
+        function updateBeatDisplay(actualBeat) {
+            state.currentBeatFreq = actualBeat;
+
+            let bandName = "Onde Delta (Horizon 3 • Suspension sensorielle profonde)";
+            let shortBand = "Delta";
+            if (actualBeat >= 3.5 && actualBeat <= 5.0) {
+                bandName = "Seuil Thêta Bas (Horizon 1 • Repos éveillé)";
+                shortBand = "Thêta";
+            } else if (actualBeat > 5.0 && actualBeat <= 8.0) {
+                bandName = "Onde Thêta (Horizon 2 • Perception à distance, Schumann & rêve lucide)";
+                shortBand = "Thêta";
+            } else if (actualBeat > 8.0 && actualBeat <= 12.0) {
+                bandName = "Onde Alpha (Relaxation préparatoire & rampe d'entrée)";
+                shortBand = "Alpha";
+            } else if (actualBeat > 12.0) {
+                bandName = "Onde Bêta Bas (Vigilance ordinaire)";
+                shortBand = "Bêta";
+            }
+
+            document.getElementById('brainwave-band-label').textContent = bandName;
+            document.getElementById('readout-beat').textContent = `+${actualBeat.toFixed(2).replace(/\.00$/, '.0')} Hz (${shortBand})`;
+
+            updateReadouts();
+        }
+
+        function updateReadouts() {
+            document.getElementById('freq-left-val').textContent = `${state.carrierFreq.toFixed(1)} Hz`;
+            document.getElementById('freq-right-val').textContent = `${(state.carrierFreq + state.currentBeatFreq).toFixed(1)} Hz`;
+        }
+
+        // Update Mixer Volumes Smoothly
+        function updateMixer() {
+            const vCarrier = parseFloat(document.getElementById('vol-carrier-slider').value) / 100;
+            const vPad = parseFloat(document.getElementById('vol-pad-slider').value) / 100;
+            const vFlute = parseFloat(document.getElementById('vol-flute-slider').value) / 100;
+
+            state.volCarrier = vCarrier;
+            state.volPad = vPad;
+            state.volFlute = vFlute;
+
+            document.getElementById('vol-carrier-label').textContent = `${Math.round(vCarrier * 100)}%`;
+            document.getElementById('vol-pad-label').textContent = `${Math.round(vPad * 100)}%`;
+            document.getElementById('vol-flute-label').textContent = `${Math.round(vFlute * 100)}%`;
+
+            if (audioCtx) {
+                const now = audioCtx.currentTime;
+                pinkGain.gain.setTargetAtTime(vFlute * 0.55, now, layerTau || 0.1);
+                if (inPrep()) {
+                    // During settling-in these levels stay silent: only the coming fade-in changes
+                    layStageLevels();
+                } else {
+                    carrierGain.gain.setTargetAtTime(vCarrier * 0.45, now, layerTau || 0.1);
+                    padGain.gain.setTargetAtTime(vPad * 0.35, now, layerTau || 0.1);
+                }
+            }
+        }
+
+        // Complete Horizon Settings
+        // Values follow the operating matrix of the manual (section 3).
+        // minHold / recoDirect / recoAscent: session duration guidance, in minutes.
+        const focusProtocols = {
+            focus10: { carrier: 100, beat: 4.0, rampMinutes: 10, gamma: false, gammaDepth: 15, rotation: false, rotationSpeed: 0.15, iso: false, isoDepth: 40, mix: [70, 30, 40], minHold: 10, recoDirect: 30, recoAscent: 30 },
+            focus12: { carrier: 136.1, beat: 5.5, rampMinutes: 5, gamma: true, gammaDepth: 35, rotation: false, rotationSpeed: 0.15, iso: false, isoDepth: 40, mix: [60, 25, 45], minHold: 15, recoDirect: 30, recoAscent: 35 },
+            focus15: { carrier: 100, beat: 1.5, rampMinutes: 10, gamma: true, gammaDepth: 20, rotation: true, rotationSpeed: 0.06, iso: false, isoDepth: 40, mix: [70, 10, 15], minHold: 20, recoDirect: 45, recoAscent: 50 },
+            focus21: { carrier: 200, beat: 3.8, rampMinutes: 10, gamma: true, gammaDepth: 25, rotation: true, rotationSpeed: 0.15, iso: true, isoDepth: 45, mix: [65, 45, 35], minHold: 30, recoDirect: 60, recoAscent: 60 }
+        };
+
+        const HORIZON_LABELS = { focus10: 'Horizon 1', focus12: 'Horizon 2', focus15: 'Horizon 3', focus21: 'Horizon 4' };
+        const FOCUS_ORDER = ['focus10', 'focus12', 'focus15', 'focus21'];
+        const SESSION_MAX_MINUTES = 180;
+        const ASCENT_MIN_HOLD_SECONDS = 3 * 60;  // Shortest stabilization on an intermediate Focus
+        const ASCENT_MIN_FINAL_SECONDS = 6 * 60; // Shortest stay on the ascent target
+        const DIRECT_MIN_FINAL_SECONDS = 10 * 60; // Shortest stay after a direct mid-session switch
+        const FINAL_FADE_SECONDS = 15;
+        const PREP_FADE_SECONDS = 30; // Frequencies emerge from the noise at the end of the settling-in
+
+        function applyProtocol(protoKey, autoStart = true) {
+            if (!focusProtocols[protoKey]) return;
+
+            activeProfileName = null;
+            state.selectedFocus = protoKey;
+            highlightFocusCard(protoKey);
+            syncQuickProfiles();
+            setSessionNote('');
+
+            if (state.ascentEnabled) {
+                if (isPlaying && !inPrep()) {
+                    replanAscentFromCurrent();
+                } else {
+                    startAscentFromBeginning();
+                }
+            } else {
+                state.ascentPlan = null;
+                state.currentFocus = protoKey;
+                loadProtocolSettings(protoKey);
+                if (isPlaying) {
+                    ensureSessionFits(neededRemainingSeconds([protoKey], rampSeconds(protoKey)));
+                    syncSessionUI();
+                    scheduleSessionAudio();
+                } else {
+                    setTimerDuration(state.timerMinutes);
+                }
+            }
+            renderAscentTimeline();
+            updateMediaSession();
+
+            if (autoStart && !isPlaying) {
+                toggleAudioEngine();
+            }
+        }
+
+        function highlightFocusCard(protoKey) {
+            document.querySelectorAll('.protocol-card').forEach(el => el.classList.remove('active-protocol'));
+            const card = document.getElementById(`proto-${protoKey}`);
+            if (card) card.classList.add('active-protocol');
+        }
+
+        // Loads one Focus into the controls, without touching the session plan.
+        // atSec: session time of a planned stage, already laid on the audio thread.
+        function loadProtocolSettings(protoKey, atSec = null) {
+            const proto = focusProtocols[protoKey];
+
+            // Mid-session, everything glides from where the session currently is
+            const midSession = isPlaying && !inPrep();
+            const beatBefore = atSec !== null ? state.targetBeatFreq : state.currentBeatFreq;
+            layerTau = midSession ? CARRIER_GLIDE_SECONDS / 3 : null;
+
+            if (midSession) {
+                startCarrierGlide(proto.carrier, atSec);
+            } else {
+                setCarrierFrequency(proto.carrier, true);
+            }
+            state.targetBeatFreq = proto.beat;
+            updateBeatTargetUI(proto.beat);
+
+            document.getElementById('gamma-depth-slider').value = proto.gammaDepth;
+            document.getElementById('rot-speed-slider').value = proto.rotationSpeed;
+            document.getElementById('iso-depth-slider').value = proto.isoDepth;
+            state.rampDurationMinutes = proto.rampMinutes;
+            updateRampDurationUI(proto.rampMinutes);
+
+            toggleModule('gamma', proto.gamma);
+            state.rampActive = true;
+            startRamp(midSession ? beatBefore : Math.max(12.0, proto.beat + 4.0), atSec);
+            updateModuleCardUI('ramp', true, 'badge-ramp');
+            toggleModule('rotation', proto.rotation);
+            toggleModule('iso', proto.iso);
+
+            document.getElementById('vol-carrier-slider').value = proto.mix[0];
+            document.getElementById('vol-pad-slider').value = proto.mix[1];
+            document.getElementById('vol-flute-slider').value = proto.mix[2];
+            updateMixer();
+
+            layerTau = null;
+        }
+
+        // ============================================================================
+        // V2.2 OPTIONAL FOCUS ASCENT
+        // ============================================================================
+        function focusLabel(protoKey) {
+            return HORIZON_LABELS[protoKey];
+        }
+
+        function rampSeconds(protoKey) {
+            return focusProtocols[protoKey].rampMinutes * 60;
+        }
+
+        function ascentKeysTo(protoKey) {
+            return FOCUS_ORDER.slice(0, FOCUS_ORDER.indexOf(protoKey) + 1);
+        }
+
+        // Focus still to run from the current one, the current one included
+        function remainingFocusKeys() {
+            if (!state.ascentEnabled) return [state.currentFocus];
+            const currentIndex = FOCUS_ORDER.indexOf(state.currentFocus);
+            const targetIndex = FOCUS_ORDER.indexOf(state.selectedFocus);
+            return targetIndex >= currentIndex
+                ? FOCUS_ORDER.slice(currentIndex, targetIndex + 1)
+                : [state.selectedFocus];
+        }
+
+        function currentRampSecondsLeft() {
+            if (!state.rampActive) return 0;
+            return Math.max(0, state.rampStartSec + state.rampDurationMinutes * 60 - sessionElapsedSeconds());
+        }
+
+        function startAscentFromBeginning() {
+            state.currentFocus = FOCUS_ORDER[0];
+            setTimerDuration(state.timerMinutes);
+            loadProtocolSettings(FOCUS_ORDER[0]);
+            if (isPlaying) {
+                // Target changed during settling-in: the session has not started yet
+                const keys = ascentKeysTo(state.selectedFocus);
+                buildAscentPlan(keys, rampSeconds(keys[0]), 0, state.remainingSeconds);
+                scheduleSessionAudio();
+            }
+            renderAscentTimeline();
+        }
+
+        function replanAscentFromCurrent() {
+            const keys = remainingFocusKeys();
+            let firstRamp;
+            if (keys[0] !== state.currentFocus) {
+                state.currentFocus = keys[0];
+                loadProtocolSettings(keys[0]);
+                firstRamp = rampSeconds(keys[0]);
+            } else {
+                firstRamp = currentRampSecondsLeft();
+            }
+            ensureSessionFits(neededRemainingSeconds(keys, firstRamp));
+            buildAscentPlan(keys, firstRamp, sessionElapsedSeconds(), state.remainingSeconds);
+            syncSessionUI();
+            scheduleSessionAudio();
+        }
+
+        // Ramps are fixed. Free time is shared between the Focus, the target getting a double share.
+        function buildAscentPlan(keys, firstRamp, fromElapsed, availableSeconds) {
+            const ramps = keys.map((key, i) => i === 0 ? firstRamp : rampSeconds(key));
+            const totalRamps = ramps.reduce((sum, ramp) => sum + ramp, 0);
+            const holdUnit = Math.max(0, availableSeconds - totalRamps) / (keys.length + 1);
+
+            let startSec = fromElapsed;
+            const stages = keys.map((key, i) => {
+                const holdSecs = i === keys.length - 1 ? holdUnit * 2 : holdUnit;
+                const stage = { key, startSec, rampSecs: ramps[i], holdSecs };
+                startSec += ramps[i] + holdSecs;
+                return stage;
+            });
+            state.ascentPlan = { stages, index: 0 };
+        }
+
+        // Brings the controls up to date with the audio clock. Stages already run on the audio
+        // thread, so this also catches up several stages after a long timer gap.
+        function advanceAscent(elapsed) {
+            const plan = state.ascentPlan;
+            if (!plan) return;
+
+            let advanced = false;
+            while (plan.stages[plan.index + 1] && elapsed >= plan.stages[plan.index + 1].startSec) {
+                plan.index++;
+                const stage = plan.stages[plan.index];
+                state.currentFocus = stage.key;
+                loadProtocolSettings(stage.key, stage.startSec);
+                advanced = true;
+            }
+            if (advanced) {
+                renderAscentTimeline();
+                updateMediaSession();
+            }
+        }
+
+        function updateAscentButton() {
+            const btn = document.getElementById('btn-ascent');
+            setSwitch(btn, state.ascentEnabled);
+        }
+
+        function toggleAscent() {
+            state.ascentEnabled = !state.ascentEnabled;
+            updateAscentButton();
+
+            if (!state.ascentEnabled && isPlaying) {
+                // Stay on the Focus reached so far instead of jumping to the target
+                state.ascentPlan = null;
+                state.selectedFocus = state.currentFocus;
+                highlightFocusCard(state.currentFocus);
+                setSessionNote('');
+                syncSessionUI();
+                renderAscentTimeline();
+                scheduleSessionAudio();
+            } else {
+                applyProtocol(state.selectedFocus, false);
+            }
+        }
+
+        function formatMinutes(seconds) {
+            return `${Math.round(seconds / 60)} min`;
+        }
+
+        function renderAscentTimeline() {
+            const timeline = document.getElementById('ascent-timeline');
+            const plan = state.ascentPlan;
+            if (!state.ascentEnabled || !plan) {
+                timeline.classList.add('hidden');
+                timeline.innerHTML = '';
+                return;
+            }
+
+            timeline.classList.remove('hidden');
+            timeline.innerHTML = plan.stages.map((stage, i) => {
+                const isCurrent = isPlaying && i === plan.index;
+                const isDone = isPlaying && i < plan.index;
+                const tone = isCurrent
+                    ? 'current'
+                    : isDone
+                        ? 'done'
+                        : '';
+                const status = isCurrent ? ' • en cours' : isDone ? ' • passé' : '';
+                return `<div class="stage ${tone}">
+                    <div class="stage-name">${focusLabel(stage.key)}${status}</div>
+                    <div class="stage-line">Début : ${formatMinutes(stage.startSec)}</div>
+                    <div class="stage-line">Rampe ${formatMinutes(stage.rampSecs)} + stabilisation ${formatMinutes(stage.holdSecs)}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ============================================================================
+        // SESSION TIMER & DYNAMIC RAMP CONTROLLER
+        // ============================================================================
+        function audioNow() {
+            return audioCtx.currentTime;
+        }
+
+        // While a session runs, time comes from the audio clock and not from a JS counter
+        function sessionElapsedSeconds() {
+            if (isPlaying) return Math.max(0, audioNow() - state.sessionAnchor);
+            return state.timerMinutes * 60 - state.remainingSeconds;
+        }
+
+        // V2.5: the settling-in time comes before the session, so the anchor sits in the future
+        function inPrep() {
+            return isPlaying && audioNow() < state.sessionAnchor;
+        }
+
+        function takeStartingPrepSeconds() {
+            const paused = state.pausedPrepSeconds;
+            state.pausedPrepSeconds = null;
+            if (state.remainingSeconds !== state.timerMinutes * 60) return 0;
+            return paused !== null ? paused : state.prepMinutes * 60;
+        }
+
+        function setPrepMinutes(minutes) {
+            state.prepMinutes = minutes;
+            document.querySelectorAll('.prep-btn').forEach(btn => {
+                btn.className = "prep-btn seg";
+            });
+            document.getElementById(`prep-${minutes}`).className =
+                "prep-btn seg on";
+
+            if (isPlaying) {
+                setSessionNote('Le nouveau sas s\'appliquera à la prochaine session.');
+            } else if (state.remainingSeconds < state.timerMinutes * 60) {
+                setSessionNote('Session en pause : ce sas s\'appliquera après Arrêter.');
+            } else {
+                state.pausedPrepSeconds = null;
+                setSessionNote('');
+            }
+            syncSessionUI();
+        }
+
+        // Only the pink noise plays: everything else rises in the last seconds of the settling-in
+        function layPrepLevels() {
+            const now = audioNow();
+            const fadeEnd = state.sessionAnchor;
+            const fadeStart = Math.max(now, fadeEnd - PREP_FADE_SECONDS);
+            const rising = [
+                [carrierGain.gain, state.volCarrier * 0.45],
+                [padGain.gain, state.volPad * 0.35],
+                [gammaGain.gain, state.gammaActive ? state.gammaDepth * 0.14 : 0.0],
+                [rotationLFOGain.gain, state.rotationActive ? 0.88 : 0.0]
+            ];
+            rising.forEach(([param, target]) => {
+                const level = fadeStart > now ? 0 : param.value;
+                param.cancelScheduledValues(now);
+                param.setValueAtTime(level, now);
+                if (fadeStart > now) param.setValueAtTime(0, fadeStart);
+                param.linearRampToValueAtTime(target, fadeEnd);
+            });
+        }
+
+        // ------------------------------------------------------------------------
+        // V2.3 audio schedule: the session is laid out in advance on the audio thread,
+        // which keeps following it when the screen is off and timers are throttled.
+        // ------------------------------------------------------------------------
+        function addSegment(segments, segment) {
+            const previous = segments[segments.length - 1];
+            if (previous && previous.t1 > segment.t0) {
+                previous.to = segmentValueAt(previous, segment.t0);
+                previous.t1 = segment.t0;
+                segment.from = previous.to;
+            }
+            segments.push(segment);
+        }
+
+        function segmentValueAt(segment, t) {
+            if (segment.t1 <= segment.t0) return segment.to;
+            const progress = Math.min(1, Math.max(0, (t - segment.t0) / (segment.t1 - segment.t0)));
+            return segment.from + (segment.to - segment.from) * progress;
+        }
+
+        function curveValueAt(curve, t) {
+            let value = curve.base;
+            for (const segment of curve.segments) {
+                if (t < segment.t0) break;
+                value = segmentValueAt(segment, t);
+            }
+            return value;
+        }
+
+        function buildFrequencyTimeline() {
+            const glide = state.carrierGlide;
+            const carrier = { base: glide ? glide.from : state.carrierFreq, segments: [] };
+            let carrierValue = state.carrierFreq;
+            if (glide) {
+                addSegment(carrier.segments, { t0: glide.startSec, t1: glide.startSec + glide.dur, from: glide.from, to: glide.to });
+                carrierValue = glide.to;
+            }
+
+            const beat = { base: state.currentBeatFreq, segments: [] };
+            if (state.rampActive) {
+                beat.base = state.rampStartBeat;
+                addSegment(beat.segments, {
+                    t0: state.rampStartSec,
+                    t1: state.rampStartSec + state.rampDurationMinutes * 60,
+                    from: state.rampStartBeat,
+                    to: state.targetBeatFreq
+                });
+            } else if (state.beatStep) {
+                beat.base = state.beatStep.from;
+                addSegment(beat.segments, {
+                    t0: state.beatStep.startSec,
+                    t1: state.beatStep.startSec + state.beatStep.dur,
+                    from: state.beatStep.from,
+                    to: state.beatStep.to
+                });
+            }
+            let beatValue = state.targetBeatFreq;
+
+            futureStages().forEach(stage => {
+                const proto = focusProtocols[stage.key];
+                addSegment(carrier.segments, { t0: stage.startSec, t1: stage.startSec + CARRIER_GLIDE_SECONDS, from: carrierValue, to: proto.carrier });
+                addSegment(beat.segments, { t0: stage.startSec, t1: stage.startSec + stage.rampSecs, from: beatValue, to: proto.beat });
+                carrierValue = proto.carrier;
+                beatValue = proto.beat;
+            });
+
+            state.timeline = { carrier, beat };
+        }
+
+        function futureStages() {
+            const plan = state.ascentPlan;
+            return plan ? plan.stages.slice(plan.index + 1) : [];
+        }
+
+        function layCurve(param, curve, elapsed, mapValue = value => value) {
+            const now = audioNow();
+            const toAudioTime = sessionSec => state.sessionAnchor + sessionSec;
+
+            param.cancelScheduledValues(now);
+            param.setValueAtTime(mapValue(curveValueAt(curve, elapsed)), now);
+            curve.segments.forEach(segment => {
+                if (segment.t1 <= elapsed) return;
+                if (segment.t0 > elapsed) param.setValueAtTime(mapValue(segment.from), toAudioTime(segment.t0));
+                param.linearRampToValueAtTime(mapValue(segment.to), toAudioTime(segment.t1));
+            });
+        }
+
+        // Layer levels of the planned stages. Moves already under way are left to finish.
+        function layStageLevels() {
+            const now = audioNow();
+            const keepFrom = now + 0.01;
+            const params = [gammaGain.gain, rotationLFOGain.gain, rotationLFO.frequency, isoLFOGain.gain, carrierGain.gain, padGain.gain, pinkGain.gain];
+            params.forEach(param => param.cancelScheduledValues(keepFrom));
+            if (inPrep()) layPrepLevels();
+
+            const tau = CARRIER_GLIDE_SECONDS / 3;
+            futureStages().forEach(stage => {
+                const proto = focusProtocols[stage.key];
+                const at = state.sessionAnchor + stage.startSec;
+                gammaGain.gain.setTargetAtTime(proto.gamma ? (proto.gammaDepth / 100) * 0.14 : 0.0, at, tau);
+                rotationLFOGain.gain.setTargetAtTime(proto.rotation ? 0.88 : 0.0, at, tau);
+                rotationLFO.frequency.setTargetAtTime(proto.rotationSpeed, at, tau);
+                isoLFOGain.gain.setTargetAtTime(proto.iso ? (proto.isoDepth / 100) * 0.45 : 0.0, at, tau);
+                carrierGain.gain.setTargetAtTime((proto.mix[0] / 100) * 0.45, at, tau);
+                padGain.gain.setTargetAtTime((proto.mix[1] / 100) * 0.35, at, tau);
+                pinkGain.gain.setTargetAtTime((proto.mix[2] / 100) * 0.55, at, tau);
+            });
+        }
+
+        // Fade-in if asked, then the final fade: it runs even if no timer fires at the end
+        function layMasterEnvelope(fadeInSeconds, elapsed) {
+            const now = audioNow();
+            const endAt = state.sessionAnchor + state.timerMinutes * 60;
+            const fadeAt = endAt - FINAL_FADE_SECONDS;
+            const param = masterGain.gain;
+            const level = Math.max(0.0001, param.value);
+
+            param.cancelScheduledValues(now);
+            param.setValueAtTime(level, now);
+            if (now >= fadeAt) {
+                param.linearRampToValueAtTime(0.0001, Math.max(endAt, now + 0.05));
+                return;
+            }
+            const riseEnd = Math.min(fadeAt, now + (fadeInSeconds !== null ? fadeInSeconds : (level < 0.8 ? 3 : 0.05)));
+            if (fadeInSeconds !== null) {
+                param.exponentialRampToValueAtTime(0.85, riseEnd);
+            } else {
+                param.linearRampToValueAtTime(0.85, riseEnd);
+            }
+            param.setValueAtTime(0.85, fadeAt);
+            param.linearRampToValueAtTime(0.0001, endAt);
+        }
+
+        function scheduleSessionAudio(fadeInSeconds = null) {
+            if (!audioCtx || !isPlaying) return;
+
+            // Negative during settling-in, so that curves start at the session start and not now
+            const elapsed = audioNow() - state.sessionAnchor;
+            if (fadeInSeconds !== null && !inPrep()) {
+                // Starting without settling-in: levels may have been left silent by a paused one
+                updateMixer();
+                updateAdvancedModules();
+            }
+            buildFrequencyTimeline();
+            layCurve(carrierSource.offset, state.timeline.carrier, elapsed);
+            layCurve(beatSource.offset, state.timeline.beat, elapsed);
+            layCurve(gammaBaseSource.offset, state.timeline.carrier, elapsed, gammaBaseFor);
+            layStageLevels();
+            layMasterEnvelope(fadeInSeconds, elapsed);
+        }
+
+        // Pause: freezes the frequencies where they are and drops what was planned
+        function holdScheduledAudio(elapsed) {
+            const now = audioNow();
+            if (state.timeline) {
+                state.carrierFreq = curveValueAt(state.timeline.carrier, elapsed);
+                state.currentBeatFreq = curveValueAt(state.timeline.beat, elapsed);
+            }
+            const held = [
+                [carrierSource.offset, state.carrierFreq],
+                [beatSource.offset, state.currentBeatFreq],
+                [gammaBaseSource.offset, gammaBaseFor(state.carrierFreq)]
+            ];
+            held.forEach(([param, value]) => {
+                param.cancelScheduledValues(now);
+                param.setValueAtTime(value, now);
+            });
+            [gammaGain.gain, rotationLFOGain.gain, rotationLFO.frequency, isoLFOGain.gain, carrierGain.gain, padGain.gain, pinkGain.gain]
+                .forEach(param => param.cancelScheduledValues(now + 0.01));
+        }
+
+        // Shows when the system has stopped the audio clock, and tries to get it back
+        function updateAudioClockStatus() {
+            if (!audioCtx || !isPlaying) return;
+
+            const statusBadge = document.getElementById('audio-status-badge');
+            if (audioCtx.state === 'running') {
+                statusBadge.textContent = "SYNCHRONISATION ACTIVE";
+                statusBadge.className = "badge on";
+            } else {
+                statusBadge.textContent = "AUDIO SUSPENDU PAR LE SYSTÈME";
+                statusBadge.className = "badge warn";
+                audioCtx.resume().catch(() => {});
+            }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            logSessionEvent('Écran', document.hidden ? 'page masquée' : 'page visible');
+            if (document.hidden) return;
+            updateAudioClockStatus();
+            tickSession();
+        });
+
+        // ------------------------------------------------------------------------
+        // V2.7 interruption log: kept in the browser so that it survives a killed page,
+        // to find out what cut the sound without having to watch it happen.
+        // ------------------------------------------------------------------------
+        const SESSION_LOG_KEY = 'entreEnPhase.sessionLog.v1';
+        const SESSION_LOG_MAX = 300;
+        const TICK_GAP_SECONDS = 5;
+        let sessionLog = [];
+        let lastTickClock = null;
+        let lastDropoutCount = null;
+        let dropoutCounterMissingLogged = false;
+
+        function readSessionLog() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(SESSION_LOG_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed.filter(line => typeof line === 'string') : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function writeSessionLog() {
+            try {
+                localStorage.setItem(SESSION_LOG_KEY, JSON.stringify(sessionLog));
+            } catch (error) {
+                // The log still works for this visit
+            }
+        }
+
+        function logSessionEvent(type, detail) {
+            const clock = new Date().toLocaleTimeString('fr-FR');
+            sessionLog.push(`${clock}  ${type}${detail ? ` : ${detail}` : ''}`);
+            if (sessionLog.length > SESSION_LOG_MAX) sessionLog = sessionLog.slice(-SESSION_LOG_MAX);
+            writeSessionLog();
+            renderSessionLog();
+        }
+
+        function renderSessionLog() {
+            document.getElementById('session-log-text').value = sessionLog.join('\n');
+            document.getElementById('session-log-count').textContent = `${sessionLog.length} ligne(s)`;
+        }
+
+        // A long gap between two ticks tells what the system did: if the audio clock moved on
+        // too, only the display was slowed down; if not, the audio itself was stopped.
+        // Dropouts counted by the browser itself, where it offers this measure
+        function checkDropouts() {
+            const stats = audioCtx.playbackStats || audioCtx.playoutStats;
+            const count = stats ? (typeof stats.underrunEvents === 'number' ? stats.underrunEvents : stats.fallbackFramesEvents) : undefined;
+            if (typeof count !== 'number') {
+                if (!dropoutCounterMissingLogged) {
+                    dropoutCounterMissingLogged = true;
+                    logSessionEvent('Compteur de micro-coupures', 'indisponible sur ce navigateur');
+                }
+                return;
+            }
+            if (lastDropoutCount !== null && count > lastDropoutCount) {
+                logSessionEvent('Micro-coupure', `${count - lastDropoutCount} de plus, total ${count}`);
+            }
+            lastDropoutCount = count;
+        }
+
+        function checkTickGap() {
+            checkDropouts();
+            const now = { wall: Date.now(), audio: audioNow() };
+            if (lastTickClock) {
+                const wallGap = (now.wall - lastTickClock.wall) / 1000;
+                if (wallGap > TICK_GAP_SECONDS) {
+                    const audioGap = now.audio - lastTickClock.audio;
+                    logSessionEvent('Minuteur en retard', `${wallGap.toFixed(0)} s sans passage, horloge audio avancée de ${audioGap.toFixed(0)} s`);
+                }
+            }
+            lastTickClock = now;
+        }
+
+        function copySessionLog() {
+            const text = document.getElementById('session-log-text');
+            const done = () => { document.getElementById('session-log-count').textContent = 'Copié'; };
+            text.select();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text.value).then(done).catch(() => {});
+            } else {
+                try {
+                    if (document.execCommand('copy')) done();
+                } catch (error) {
+                    // The text stays selected, ready to be copied by hand
+                }
+            }
+        }
+
+        function clearSessionLog() {
+            sessionLog = [];
+            writeSessionLog();
+            renderSessionLog();
+        }
+
+        function initSessionLog() {
+            sessionLog = readSessionLog();
+            logSessionEvent('Page ouverte', APP_VERSION);
+            document.addEventListener('freeze', () => logSessionEvent('Page', 'gelée par le système'));
+            document.addEventListener('resume', () => logSessionEvent('Page', 'dégelée'));
+            window.addEventListener('pagehide', () => logSessionEvent('Page', 'fermée ou mise de côté'));
+        }
+
+        function requiredSecondsFor(keys, firstRamp) {
+            const ramps = keys.reduce((sum, key, i) => sum + (i === 0 ? firstRamp : rampSeconds(key)), 0);
+            if (!state.ascentEnabled) return ramps + DIRECT_MIN_FINAL_SECONDS;
+            return ramps + ASCENT_MIN_HOLD_SECONDS * (keys.length - 1) + ASCENT_MIN_FINAL_SECONDS;
+        }
+
+        // Shortest whole session that makes sense for this Focus, rounded up to 5 minutes
+        function minSessionMinutes(protoKey) {
+            const proto = focusProtocols[protoKey];
+            if (!state.ascentEnabled) return proto.rampMinutes + proto.minHold;
+            const keys = ascentKeysTo(protoKey);
+            return Math.ceil(requiredSecondsFor(keys, rampSeconds(keys[0])) / 300) * 5;
+        }
+
+        function recommendedSessionMinutes(protoKey) {
+            const proto = focusProtocols[protoKey];
+            return state.ascentEnabled ? proto.recoAscent : proto.recoDirect;
+        }
+
+        function neededRemainingSeconds(keys, firstRamp) {
+            const wholeSession = minSessionMinutes(state.selectedFocus) * 60 - sessionElapsedSeconds();
+            return Math.max(requiredSecondsFor(keys, firstRamp), wholeSession);
+        }
+
+        // Extends a running session that is too short for what was just asked
+        function ensureSessionFits(neededSeconds) {
+            if (state.remainingSeconds >= neededSeconds) return;
+
+            const elapsed = sessionElapsedSeconds();
+            state.timerMinutes = Math.min(SESSION_MAX_MINUTES, Math.ceil((elapsed + neededSeconds) / 60));
+            state.remainingSeconds = Math.ceil(state.timerMinutes * 60 - elapsed);
+            setSessionNote(`Session prolongée à ${state.timerMinutes} min pour atteindre ${focusLabel(state.selectedFocus)}.`);
+        }
+
+        function setTimerDuration(minutes) {
+            const parsed = Math.round(parseFloat(minutes));
+            const requested = Number.isNaN(parsed) ? state.timerMinutes : parsed;
+            const elapsed = isPlaying ? sessionElapsedSeconds() : 0;
+            const abandonsPausedSession = !isPlaying && state.remainingSeconds < state.timerMinutes * 60;
+
+            let minimum = minSessionMinutes(state.selectedFocus);
+            if (isPlaying) {
+                const required = requiredSecondsFor(remainingFocusKeys(), currentRampSecondsLeft());
+                minimum = Math.max(minimum, Math.ceil((elapsed + required) / 60));
+            }
+            const applied = Math.min(SESSION_MAX_MINUTES, Math.max(minimum, requested));
+
+            state.timerMinutes = applied;
+            state.remainingSeconds = Math.ceil(applied * 60 - elapsed);
+            if (!isPlaying) state.pausedPrepSeconds = null;
+            setSessionNote(applied > requested
+                ? `Durée portée à ${applied} min : minimum pour ${focusLabel(state.selectedFocus)}${state.ascentEnabled ? ' en ascension' : ''}.`
+                : (abandonsPausedSession ? 'Session en pause abandonnée : le prochain départ sera une nouvelle session.' : ''));
+
+            if (isPlaying) {
+                if (state.ascentPlan) {
+                    buildAscentPlan(remainingFocusKeys(), currentRampSecondsLeft(), elapsed, state.remainingSeconds);
+                }
+                scheduleSessionAudio();
+                updateMediaSession();
+            } else if (state.ascentEnabled) {
+                const keys = ascentKeysTo(state.selectedFocus);
+                buildAscentPlan(keys, rampSeconds(keys[0]), 0, state.remainingSeconds);
+            }
+            syncSessionUI();
+            renderAscentTimeline();
+        }
+
+        function nudgeSession(delta) {
+            setTimerDuration(state.timerMinutes + delta);
+        }
+
+        function applyRecommendedDuration() {
+            setTimerDuration(recommendedSessionMinutes(state.selectedFocus));
+        }
+
+        function setSessionNote(text) {
+            document.getElementById('session-note').textContent = text;
+        }
+
+        function syncSessionUI() {
+            const focus = state.selectedFocus;
+            document.getElementById('session-minutes').value = state.timerMinutes;
+            document.getElementById('session-hint').textContent =
+                `${profileNamesTheSession() ? 'Minimum' : `${focusLabel(focus)}${state.ascentEnabled ? ' en ascension' : ''} : minimum`} ${minSessionMinutes(focus)} min${state.prepMinutes ? ` • Sas de ${state.prepMinutes} min en plus` : ''}`;
+            document.getElementById('session-reco-btn').textContent = `Conseillé : ${recommendedSessionMinutes(focus)} min`;
+            updateTimerDisplay();
+            updateTransportUI();
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timer-display');
+            const prepLeft = isPlaying
+                ? (inPrep() ? state.sessionAnchor - audioNow() : 0)
+                : (state.pausedPrepSeconds || 0);
+            const shown = Math.ceil((prepLeft > 0 ? prepLeft : state.remainingSeconds) - 0.001); // Absorbs rounding errors
+            const mins = Math.floor(shown / 60);
+            const secs = shown % 60;
+            const clock = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            display.textContent = clock;
+            const displayClass = `timer${prepLeft > 0 ? ' prep' : ''}`;
+            if (display.className !== displayClass) display.className = displayClass;
+        }
+
+        function startSessionTimer() {
+            stopSessionTimer();
+            state.timerInterval = setInterval(tickSession, 1000);
+        }
+
+        // Display and controls only: reads the audio clock, however late it fires.
+        // The sound itself follows the schedule laid on the audio thread.
+        function tickSession() {
+            if (!isPlaying || !state.timeline) return;
+
+            checkTickGap();
+            const elapsed = sessionElapsedSeconds();
+            state.remainingSeconds = Math.max(0, Math.ceil(state.timerMinutes * 60 - elapsed));
+            updateTimerDisplay();
+
+            if (state.prepActive && !inPrep()) {
+                state.prepActive = false;
+                updateMediaSession();
+            }
+
+            advanceAscent(elapsed);
+
+            const glide = state.carrierGlide;
+            if (glide && elapsed >= glide.startSec + glide.dur) state.carrierGlide = null;
+            const step = state.beatStep;
+            if (step && elapsed >= step.startSec + step.dur) state.beatStep = null;
+
+            const carrierNow = curveValueAt(state.timeline.carrier, elapsed);
+            if (Math.abs(carrierNow - state.carrierFreq) > 0.005) {
+                state.carrierFreq = carrierNow;
+                updateCarrierDisplay(carrierNow);
+            }
+            updateBeatDisplay(curveValueAt(state.timeline.beat, elapsed));
+
+            if (state.rampActive) {
+                const totalRampSecs = state.rampDurationMinutes * 60;
+                const progress = Math.min(1, Math.max(0, (elapsed - state.rampStartSec) / totalRampSecs));
+                document.getElementById('ramp-progress-bar').style.width = `${(progress * 100).toFixed(1)}%`;
+                document.getElementById('ramp-status-text').textContent = progress < 1
+                    ? `${state.rampStartBeat >= state.targetBeatFreq ? 'Descente' : 'Montée'} : ${state.currentBeatFreq.toFixed(1)} Hz → ${state.targetBeatFreq.toFixed(1)} Hz (${Math.round(progress * 100)}%)`
+                    : `Cible ${state.targetBeatFreq.toFixed(1)} Hz atteinte`;
+            }
+
+            updateAudioClockStatus();
+
+            if (state.remainingSeconds === 0) {
+                stopSession();
+            }
+        }
+
+        function stopSessionTimer() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+        }
+
+        // ============================================================================
+        // V2.3 NAMED SETTINGS PROFILES
+        // ============================================================================
+        const PROFILE_STORAGE_KEY = 'entreEnPhase.profiles.v1';
+        const PROFILE_SELECTED_KEY = 'entreEnPhase.selectedProfile.v1';
+        const PROFILE_IMPORT_MAX_BYTES = 1024 * 1024;
+        let profiles = [];
+
+        function setProfileNote(text) {
+            document.getElementById('profile-note').textContent = text;
+        }
+
+        function clampNumber(value, min, max, fallback) {
+            const number = parseFloat(value);
+            if (Number.isNaN(number)) return fallback;
+            return Math.min(max, Math.max(min, number));
+        }
+
+        // Profiles can come from an imported file: every value is checked and bounded
+        function sanitizeProfile(raw) {
+            if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string') return null;
+            const name = raw.name.trim().slice(0, 60);
+            if (!name) return null;
+
+            const s = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
+            const mix = Array.isArray(s.mix) ? s.mix : [];
+            return {
+                name,
+                savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : '',
+                settings: {
+                    carrier: clampNumber(s.carrier, 50, 450, 100),
+                    beat: clampNumber(s.beat, 0.5, 14, 4),
+                    rampActive: s.rampActive !== false,
+                    rampMinutes: s.rampMinutes === 5 ? 5 : 10,
+                    gammaActive: s.gammaActive === true,
+                    gammaDepth: clampNumber(s.gammaDepth, 5, 70, 25),
+                    rotationActive: s.rotationActive === true,
+                    rotationSpeed: clampNumber(s.rotationSpeed, 0.05, 0.40, 0.15),
+                    isoActive: s.isoActive === true,
+                    isoDepth: clampNumber(s.isoDepth, 10, 90, 40),
+                    mix: [clampNumber(mix[0], 0, 100, 65), clampNumber(mix[1], 0, 100, 25), clampNumber(mix[2], 0, 100, 40)],
+                    sessionMinutes: Math.round(clampNumber(s.sessionMinutes, 10, SESSION_MAX_MINUTES, 30)),
+                    breathing: s.breathing !== false,
+                    selectedFocus: FOCUS_ORDER.includes(s.selectedFocus) ? s.selectedFocus : 'focus10',
+                    ascentEnabled: s.ascentEnabled === true,
+                    prepMinutes: s.prepMinutes === 2 || s.prepMinutes === 5 ? s.prepMinutes : 0
+                }
+            };
+        }
+
+        function captureSettings() {
+            return {
+                carrier: state.carrierGlide ? state.carrierGlide.to : state.carrierFreq,
+                beat: state.targetBeatFreq,
+                rampActive: state.rampActive,
+                rampMinutes: state.rampDurationMinutes,
+                gammaActive: state.gammaActive,
+                gammaDepth: Math.round(state.gammaDepth * 100),
+                rotationActive: state.rotationActive,
+                rotationSpeed: state.rotationSpeed,
+                isoActive: state.isoActive,
+                isoDepth: Math.round(state.isoDepth * 100),
+                mix: [state.volCarrier, state.volPad, state.volFlute].map(volume => Math.round(volume * 100)),
+                sessionMinutes: state.timerMinutes,
+                breathing: state.breathingActive,
+                selectedFocus: state.selectedFocus,
+                ascentEnabled: state.ascentEnabled,
+                prepMinutes: state.prepMinutes
+            };
+        }
+
+        function applyProfileSettings(settings) {
+            setPrepMinutes(settings.prepMinutes);
+            state.ascentEnabled = settings.ascentEnabled;
+            updateAscentButton();
+            state.selectedFocus = settings.selectedFocus;
+            highlightFocusCard(settings.ascentEnabled ? settings.selectedFocus : null);
+            setSessionNote('');
+            state.timerMinutes = settings.sessionMinutes;
+            state.remainingSeconds = settings.sessionMinutes * 60;
+
+            if (state.ascentEnabled) {
+                // In ascent, each stage brings its own settings: the profile keeps target and duration
+                startAscentFromBeginning();
+            } else {
+                state.ascentPlan = null;
+                state.currentFocus = settings.selectedFocus;
+                setCarrierFrequency(settings.carrier, false);
+
+                document.getElementById('gamma-depth-slider').value = settings.gammaDepth;
+                document.getElementById('rot-speed-slider').value = settings.rotationSpeed;
+                document.getElementById('iso-depth-slider').value = settings.isoDepth;
+                document.getElementById('vol-carrier-slider').value = settings.mix[0];
+                document.getElementById('vol-pad-slider').value = settings.mix[1];
+                document.getElementById('vol-flute-slider').value = settings.mix[2];
+                updateMixer();
+
+                setRampDuration(settings.rampMinutes);
+                state.targetBeatFreq = settings.beat;
+                updateBeatTargetUI(settings.beat);
+                toggleModule('gamma', settings.gammaActive);
+                toggleModule('rotation', settings.rotationActive);
+                toggleModule('iso', settings.isoActive);
+                toggleModule('ramp', settings.rampActive);
+
+                setTimerDuration(settings.sessionMinutes);
+            }
+
+            if (state.breathingActive !== settings.breathing) toggleBreathingGuide();
+            renderAscentTimeline();
+        }
+
+        function readStoredProfiles() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed.map(sanitizeProfile).filter(Boolean) : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function writeStoredProfiles() {
+            try {
+                localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profiles));
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function rememberSelectedProfile(name) {
+            try {
+                localStorage.setItem(PROFILE_SELECTED_KEY, name);
+            } catch (error) {
+                // Only a convenience: the list still works without it
+            }
+        }
+
+        function renderProfileList(selectedName = '') {
+            const select = document.getElementById('profile-select');
+            select.textContent = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = profiles.length ? 'Choisir un profil…' : 'Aucun profil enregistré';
+            select.appendChild(placeholder);
+
+            profiles.forEach(profile => {
+                const option = document.createElement('option');
+                option.value = profile.name;
+                option.textContent = profile.name;
+                select.appendChild(option);
+            });
+            select.value = profiles.some(profile => profile.name === selectedName) ? selectedName : '';
+            syncQuickProfiles();
+        }
+
+        function sortProfiles() {
+            profiles.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+        }
+
+        function saveProfile() {
+            const input = document.getElementById('profile-name');
+            const name = input.value.trim().slice(0, 60);
+            if (!name) {
+                setProfileNote('Donnez un nom au profil avant de l\'enregistrer.');
+                return;
+            }
+
+            const existingIndex = profiles.findIndex(profile => profile.name === name);
+            if (existingIndex !== -1 && !window.confirm(`Remplacer le profil « ${name} » ?`)) return;
+
+            const profile = { name, savedAt: new Date().toISOString(), settings: captureSettings() };
+            if (existingIndex !== -1) {
+                profiles[existingIndex] = profile;
+            } else {
+                profiles.push(profile);
+            }
+            sortProfiles();
+
+            const stored = writeStoredProfiles();
+            rememberSelectedProfile(name);
+            renderProfileList(name);
+            setProfileNote(stored
+                ? `Profil « ${name} » enregistré.`
+                : `Profil « ${name} » gardé pour cette visite seulement : la mémoire du navigateur est indisponible. Exportez-le pour le conserver.`);
+        }
+
+        function selectedProfile() {
+            const name = document.getElementById('profile-select').value;
+            return profiles.find(profile => profile.name === name) || null;
+        }
+
+        function onProfileSelected() {
+            const profile = selectedProfile();
+            if (profile) {
+                document.getElementById('profile-name').value = profile.name;
+                rememberSelectedProfile(profile.name);
+            }
+            setProfileNote('');
+        }
+
+        function loadSelectedProfile() {
+            const profile = selectedProfile();
+            if (!profile) {
+                setProfileNote('Choisissez d\'abord un profil dans la liste.');
+                return;
+            }
+            if (isPlaying) {
+                setProfileNote('Mettez la session en pause pour charger un profil : le changement serait trop brusque.');
+                setSessionNote('Mettez la session en pause pour charger un profil.');
+                return;
+            }
+            const abandoned = sessionInProgress();
+            activeProfileName = profile.name;
+            applyProfileSettings(profile.settings);
+            syncQuickProfiles();
+            syncSessionUI();
+            if (abandoned) setSessionNote('Session en pause abandonnée : le prochain départ sera une nouvelle session.');
+            setProfileNote(`Profil « ${profile.name} » chargé.`);
+        }
+
+        function deleteSelectedProfile() {
+            const profile = selectedProfile();
+            if (!profile) {
+                setProfileNote('Choisissez d\'abord un profil dans la liste.');
+                return;
+            }
+            if (!window.confirm(`Supprimer le profil « ${profile.name} » ?`)) return;
+
+            profiles = profiles.filter(other => other !== profile);
+            writeStoredProfiles();
+            renderProfileList();
+            document.getElementById('profile-name').value = '';
+            setProfileNote(`Profil « ${profile.name} » supprimé.`);
+        }
+
+        function exportProfiles() {
+            if (!profiles.length) {
+                setProfileNote('Aucun profil à exporter.');
+                return;
+            }
+            const content = JSON.stringify({ app: 'entre_en_phase', version: 1, profiles }, null, 2);
+            const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'profils_entree_en_phase.json';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            setProfileNote(`${profiles.length} profil(s) exporté(s) dans profils_entree_en_phase.json.`);
+        }
+
+        function freeProfileName(name) {
+            if (!profiles.some(profile => profile.name === name)) return name;
+            for (let i = 1; ; i++) {
+                const suffix = i === 1 ? ' (importé)' : ` (importé ${i})`;
+                const candidate = name.slice(0, 60 - suffix.length) + suffix;
+                if (!profiles.some(profile => profile.name === candidate)) return candidate;
+            }
+        }
+
+        // Existing profiles are never overwritten: a name already taken gets a suffix
+        function mergeImportedProfiles(text) {
+            const parsed = JSON.parse(text);
+            const list = Array.isArray(parsed) ? parsed : parsed && parsed.profiles;
+            if (!Array.isArray(list)) throw new Error('format');
+
+            let added = 0;
+            list.map(sanitizeProfile).filter(Boolean).forEach(profile => {
+                profile.name = freeProfileName(profile.name);
+                profiles.push(profile);
+                added++;
+            });
+            if (!added) throw new Error('empty');
+
+            sortProfiles();
+            const stored = writeStoredProfiles();
+            renderProfileList();
+            setProfileNote(`${added} profil(s) importé(s).${stored ? '' : ' La mémoire du navigateur est indisponible : ils seront perdus à la fermeture.'}`);
+        }
+
+        function importProfiles(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+            if (file.size > PROFILE_IMPORT_MAX_BYTES) {
+                setProfileNote('Ce fichier est trop volumineux pour être un export de profils.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    mergeImportedProfiles(reader.result);
+                } catch (error) {
+                    setProfileNote('Ce fichier ne contient pas de profils valides.');
+                }
+            };
+            reader.onerror = () => setProfileNote('Impossible de lire ce fichier.');
+            reader.readAsText(file);
+        }
+
+        function initProfiles() {
+            profiles = readStoredProfiles();
+            sortProfiles();
+            let lastUsed = '';
+            try {
+                lastUsed = localStorage.getItem(PROFILE_SELECTED_KEY) || '';
+            } catch (error) {
+                lastUsed = '';
+            }
+            renderProfileList(lastUsed);
+            if (selectedProfile()) document.getElementById('profile-name').value = lastUsed;
+        }
+
+        // ============================================================================
+        // REAL-TIME OSCILLOSCOPE & 4-2-6 PHASE BREATHING ANIMATION
+        // ============================================================================
+        const canvas = document.getElementById('oscilloscope');
+        const ctx = canvas.getContext('2d');
+        let animPhase = 0;
+        const LIGHT_MODE_KEY = 'entreEnPhase.lightMode.v1';
+        const LIGHT_BREATH_PAINT_MS = 500;
+        let lightMode = false;
+        let lastBreathPaint = 0;
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function toggleBreathingGuide() {
+            state.breathingActive = !state.breathingActive;
+            const btn = document.getElementById('breath-toggle-btn');
+            if (state.breathingActive) {
+                setSwitch(btn, true);
+            } else {
+                setSwitch(btn, false);
+            }
+        }
+
+        // V2.8.1: in light mode the oscilloscope stops and the breathing guide is redrawn less often
+        function renderLoop(timestamp) {
+            if (!lightMode && advancedOpen) drawOscilloscope();
+            if (advancedOpen && (!lightMode || timestamp - lastBreathPaint >= LIGHT_BREATH_PAINT_MS)) {
+                lastBreathPaint = timestamp;
+                updateBreathingGuide(timestamp);
+            }
+            requestAnimationFrame(renderLoop);
+        }
+
+        function drawOscilloscope() {
+            const width = canvas.width / window.devicePixelRatio;
+            const height = canvas.height / window.devicePixelRatio;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Subtle Grid Background
+            ctx.strokeStyle = 'rgba(58, 64, 70, 0.5)';
+            ctx.lineWidth = 1;
+            const step = 32;
+            for (let x = 0; x < width; x += step) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += step) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Center Zero-Crossing Line
+            ctx.strokeStyle = 'rgba(58, 64, 70, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.stroke();
+
+            const speed = isPlaying ? 0.045 : 0.012;
+            animPhase += speed;
+
+            const freqVisualScale = state.carrierFreq / 55;
+            const beatVisualScale = state.currentBeatFreq * 0.35;
+            const amp = isPlaying ? (height * 0.26 * Math.max(0.25, state.volCarrier)) : (height * 0.12);
+
+            // 1. Draw Binaural Interference Envelope (Standing Wave Envelope)
+            if (state.currentBeatFreq > 0) {
+                ctx.fillStyle = 'rgba(157, 191, 180, 0.07)';
+                ctx.beginPath();
+                for (let x = 0; x <= width; x += 3) {
+                    const normX = x / width;
+                    const env = Math.cos((normX * Math.PI * 2 * (1 + beatVisualScale * 0.4)) - animPhase * 0.6);
+                    const y = (height / 2) - Math.abs(env) * (amp * 1.25);
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                for (let x = width; x >= 0; x -= 3) {
+                    const normX = x / width;
+                    const env = Math.cos((normX * Math.PI * 2 * (1 + beatVisualScale * 0.4)) - animPhase * 0.6);
+                    const y = (height / 2) + Math.abs(env) * (amp * 1.25);
+                    ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // 2. Left Ear Wave (Cyan + Isochronic Envelope if active)
+            ctx.strokeStyle = isPlaying ? '#9DBFB4' : 'rgba(157, 191, 180, 0.45)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let x = 0; x < width; x++) {
+                const normX = x / width;
+                const isoFactor = state.isoActive
+                    ? (1 - state.isoDepth * 0.45 * (0.5 + 0.5 * Math.sin(normX * Math.PI * 6 - animPhase * 1.4)))
+                    : 1.0;
+                const y = (height / 2) + Math.sin(normX * Math.PI * 4 * freqVisualScale - animPhase) * amp * isoFactor;
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // 3. Right Ear Wave (Amber - Phase shifted by Binaural Beat)
+            ctx.strokeStyle = isPlaying ? '#C9CDD1' : 'rgba(201, 205, 209, 0.45)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let x = 0; x < width; x++) {
+                const normX = x / width;
+                const phaseShift = state.currentBeatFreq * 0.45;
+                const isoFactor = state.isoActive
+                    ? (1 - state.isoDepth * 0.45 * (0.5 + 0.5 * Math.sin(normX * Math.PI * 6 - animPhase * 1.4)))
+                    : 1.0;
+                const y = (height / 2) + Math.sin(normX * Math.PI * 4 * (freqVisualScale + phaseShift * 0.15) - animPhase * (1 + phaseShift * 0.08)) * amp * isoFactor;
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // 4. Next-Gen 40 Hz Gamma Ripple Overlay (Purple High-Frequency Trace)
+            if (state.gammaActive) {
+                ctx.strokeStyle = isPlaying ? 'rgba(217, 190, 140, 0.75)' : 'rgba(217, 190, 140, 0.35)';
+                ctx.lineWidth = 1.3;
+                ctx.beginPath();
+                const gammaAmp = amp * state.gammaDepth * 0.75;
+                for (let x = 0; x < width; x++) {
+                    const normX = x / width;
+                    const thetaMod = Math.cos(normX * Math.PI * 2 * (1 + beatVisualScale * 0.4) - animPhase * 0.6);
+                    const y = (height / 2) + Math.sin(normX * Math.PI * 36 - animPhase * 3.5) * gammaAmp * thetaMod;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+
+        }
+
+        function updateBreathingGuide(timestamp) {
+            // Update 12-Second Preparatory Breathing Cycle (4s Inhale, 2s Hold, 6s Exhale)
+            if (state.breathingActive) {
+                const cycleSeconds = 12.0;
+                const elapsed = (timestamp / 1000) % cycleSeconds;
+
+                const circle = document.getElementById('breath-circle');
+                const ring = document.getElementById('breath-outer-ring');
+                const timerText = document.getElementById('breath-timer');
+                const phaseLabel = document.getElementById('breath-phase-label');
+
+                let scale = 1.0;
+                let phaseTimeRemaining = 0;
+
+                if (elapsed < 4.0) {
+                    const progress = elapsed / 4.0;
+                    scale = 0.70 + (0.60 * Math.sin(progress * (Math.PI / 2)));
+                    phaseTimeRemaining = 4.0 - elapsed;
+                    phaseLabel.textContent = "1. Inspirez lentement par le nez...";
+                    phaseLabel.className = "breath-label";
+                } else if (elapsed < 6.0) {
+                    scale = 1.30;
+                    phaseTimeRemaining = 6.0 - elapsed;
+                    phaseLabel.textContent = "2. Suspension calme (esprit clair)...";
+                    phaseLabel.className = "breath-label";
+                } else {
+                    const progress = (elapsed - 6.0) / 6.0;
+                    scale = 1.30 - (0.60 * Math.sin(progress * (Math.PI / 2)));
+                    phaseTimeRemaining = 12.0 - elapsed;
+                    phaseLabel.textContent = "3. Expirez longuement (relâchez le corps physique)...";
+                    phaseLabel.className = "breath-label";
+                }
+
+                circle.style.transform = `scale(${scale.toFixed(3)})`;
+                ring.style.transform = `scale(${(0.85 + (scale - 0.7) * 0.35).toFixed(3)})`;
+                timerText.textContent = `${phaseTimeRemaining.toFixed(1)}s`;
+            }
+        }
+
+        // ============================================================================
+        // V2.8.1 LIGHT MODE
+        // ============================================================================
+        function readLightModeChoice() {
+            try {
+                const saved = localStorage.getItem(LIGHT_MODE_KEY);
+                if (saved !== null) return saved === 'on';
+            } catch (error) {
+                // Falls back on the device type
+            }
+            return window.matchMedia('(pointer: coarse)').matches;
+        }
+
+        function applyLightMode(enabled) {
+            lightMode = enabled;
+            document.body.classList.toggle('light-mode', enabled);
+
+            const btn = document.getElementById('btn-light-mode');
+            setSwitch(btn, enabled);
+
+            if (enabled) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function toggleLightMode() {
+            applyLightMode(!lightMode);
+            if (!lightMode && advancedOpen) resizeCanvas();
+            try {
+                localStorage.setItem(LIGHT_MODE_KEY, lightMode ? 'on' : 'off');
+            } catch (error) {
+                // Only the choice is lost, for the next visit
+            }
+            logSessionEvent('Mode léger', lightMode ? 'activé' : 'désactivé');
+        }
+
+        // ============================================================================
+        // V3 INTERFACE: simple and advanced views, session area, loaded profile
+        // ============================================================================
+        const ADVANCED_VIEW_KEY = 'entreEnPhase.advancedView.v1';
+        const HORIZON_NAMES = { focus10: 'Repos éveillé', focus12: 'Perception élargie', focus15: 'Hors du temps', focus21: 'Le Seuil' };
+        let activeProfileName = null; // A loaded personal profile: its settings no longer match a Horizon's name
+        let advancedOpen = false;
+
+        function setSwitch(btn, isOn) {
+            btn.classList.toggle('on', isOn);
+            btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+        }
+
+        function profileNamesTheSession() {
+            return activeProfileName !== null && !state.ascentEnabled;
+        }
+
+        function currentSoundLabel() {
+            return profileNamesTheSession() ? activeProfileName : focusLabel(state.currentFocus);
+        }
+
+        function refreshSessionView() {
+            const running = sessionInProgress();
+            const preparing = inPrep() || (!isPlaying && state.pausedPrepSeconds !== null);
+            const focus = running ? state.currentFocus : state.selectedFocus;
+            const focusTitle = `${focusLabel(focus)} : ${HORIZON_NAMES[focus]}`;
+
+            document.body.classList.toggle('in-session', running);
+            if (!running) document.body.classList.remove('show-setup');
+
+            document.getElementById('session-title').textContent = preparing
+                ? 'Préparation'
+                : (profileNamesTheSession() ? `Profil : ${activeProfileName}` : focusTitle);
+
+            let sub = '';
+            if (preparing) {
+                const destination = state.ascentEnabled ? ` vers ${HORIZON_NAMES[state.selectedFocus]}` : '';
+                sub = `Puis ${state.timerMinutes} min${destination}`;
+            } else if (running && state.ascentEnabled && state.selectedFocus !== state.currentFocus) {
+                sub = `Vers ${focusLabel(state.selectedFocus)} : ${HORIZON_NAMES[state.selectedFocus]}`;
+            }
+            document.getElementById('session-sub').textContent = sub;
+
+            const dots = document.getElementById('session-dots');
+            dots.classList.toggle('hidden', !(running && state.ascentEnabled));
+            const reached = FOCUS_ORDER.indexOf(state.currentFocus);
+            dots.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('on', i <= reached));
+
+            const message = document.getElementById('session-message');
+            message.classList.toggle('hidden', !isPlaying);
+            message.textContent = preparing
+                ? 'Installez-vous et fermez les yeux. Selon votre téléphone, l\'écran peut s\'éteindre.'
+                : 'Selon votre téléphone, l\'écran peut s\'éteindre.';
+        }
+
+        function toggleSetupDuringSession() {
+            document.body.classList.toggle('show-setup');
+        }
+
+        function applyAdvancedView(open) {
+            advancedOpen = open;
+            document.body.classList.toggle('advanced-open', open);
+            if (open) resizeCanvas();
+        }
+
+        function toggleAdvanced() {
+            applyAdvancedView(!advancedOpen);
+            try {
+                localStorage.setItem(ADVANCED_VIEW_KEY, advancedOpen ? 'on' : 'off');
+            } catch (error) {
+                // Only the choice is lost, for the next visit
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function initAdvancedView() {
+            let saved = null;
+            try {
+                saved = localStorage.getItem(ADVANCED_VIEW_KEY);
+            } catch (error) {
+                saved = null;
+            }
+            applyAdvancedView(saved === 'on');
+        }
+
+        // The header list mirrors the one in the advanced settings
+        function syncQuickProfiles() {
+            const source = document.getElementById('profile-select');
+            const quick = document.getElementById('quick-profile');
+            quick.textContent = '';
+            [...source.options].forEach(option => {
+                const copy = document.createElement('option');
+                copy.value = option.value;
+                copy.textContent = option.value ? option.textContent : (source.options.length > 1 ? 'Choisir un profil' : 'Aucun profil');
+                quick.appendChild(copy);
+            });
+            quick.value = activeProfileName !== null ? activeProfileName : source.value;
+            if (activeProfileName === null) quick.value = '';
+        }
+
+        function quickProfileChosen(quick) {
+            const source = document.getElementById('profile-select');
+            source.value = quick.value;
+            onProfileSelected();
+            if (quick.value) loadSelectedProfile();
+            syncQuickProfiles();
+        }
+
+        // The application stays on the device once this has been opened with a network
+        function registerServiceWorker() {
+            if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+            navigator.serviceWorker.register('service-worker.js').catch(error => {
+                logSessionEvent('Hors ligne', `installation impossible : ${error.message}`);
+            });
+        }
+
+        window.onload = function () {
+            resizeCanvas();
+            // Load Horizon 1 with its entry ramp so "Entrer en Phase" never starts cold
+            applyProtocol('focus10', false);
+            initProfiles();
+            setupMediaSession();
+            initSessionLog();
+            registerServiceWorker();
+            applyLightMode(readLightModeChoice());
+            initAdvancedView();
+            updateReadouts();
+            requestAnimationFrame(renderLoop);
+        };
+    </script>
+</body>
+</html>
